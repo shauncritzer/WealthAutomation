@@ -6,21 +6,22 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 class ConvertKitV4Integration:
-    """Handles ConvertKit integration using the V4 API."""
+    """Handles Kit (formerly ConvertKit) integration using the V4 API."""
 
     def __init__(self):
         """Initialize with credentials from environment variables."""
         load_dotenv() # Load .env file in the current directory if it exists (for local testing)
         self.api_secret = os.getenv("CONVERTKIT_API_SECRET") 
         self.api_key_v4 = os.getenv("CONVERTKIT_API_KEY_V4") # Now prioritize this for auth
-        self.base_url = "https://api.convertkit.com/v4"
+        # Updated base URL for Kit API V4
+        self.base_url = "https://api.kit.com/v4" 
         # Use relative paths for Railway compatibility
         self.log_dir = Path("drop_reports")
         self.fallback_dir = self.log_dir / "ck_fallback"
         self.log_file = self.log_dir / "convertkit_v4_integration.log"
         # Ensure directories exist
         self._ensure_dirs_exist()
-        self._log("ConvertKitV4Integration initialized")
+        self._log("Kit V4 Integration initialized")
         if not self.api_key_v4:
             # Log error if V4 key is missing, as we are now trying it for auth
             self._log("Missing CONVERTKIT_API_KEY_V4 in environment variables", "ERROR")
@@ -45,7 +46,6 @@ class ConvertKitV4Integration:
         log_message = f"[{timestamp}] [{level}] {message}\n"
         try:
             self.log_file.parent.mkdir(parents=True, exist_ok=True)
-            # Corrected encoding parameter
             with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(log_message)
         except Exception as e:
@@ -59,18 +59,18 @@ class ConvertKitV4Integration:
         if not self.api_key_v4:
             self._log("API Key V4 not available for headers", "ERROR")
             return None
-        # Try using the API Key V4 as the Bearer token
         return {
             "Authorization": f"Bearer {self.api_key_v4}", 
             "Content-Type": "application/json"
         }
 
     def get_forms(self):
-        """Retrieve forms from ConvertKit."""
+        """Retrieve forms from Kit."""
         headers = self._get_headers()
         if not headers:
             return []
             
+        # Updated endpoint path if necessary (assuming /forms is still correct)
         endpoint = f"{self.base_url}/forms"
         self._log(f"Attempting to get forms from {endpoint} using API Key V4")
         try:
@@ -87,37 +87,39 @@ class ConvertKitV4Integration:
                  self._log(f"Response text: {e.response.text}", "ERROR")
             return []
 
-    def create_and_send_email_blast(self, subject, content):
-        """Create and automatically send an email blast using V4 API."""
+    def create_and_send_broadcast(self, subject, content):
+        """Create and automatically send a broadcast using Kit V4 API."""
         headers = self._get_headers()
         if not headers:
-            self._log("Cannot create blast, headers unavailable (missing API Key V4?).", "ERROR")
+            self._log("Cannot create broadcast, headers unavailable (missing API Key V4?).", "ERROR")
             return None, self._save_fallback(subject, content), False
             
-        endpoint = f"{self.base_url}/email_blasts"
+        # Updated endpoint for creating broadcasts
+        endpoint = f"{self.base_url}/broadcasts" 
         data = {
             "subject": subject,
             "content": content
             # V4 sends immediately upon creation
         }
-        self._log(f"Attempting to create and send email blast using API Key V4: ", "INFO")
+        self._log(f"Attempting to create and send broadcast to {endpoint} using API Key V4", "INFO")
         try:
             response = requests.post(endpoint, headers=headers, json=data, timeout=60)
             response.raise_for_status()
-            blast_data = response.json()
-            email_blast_id = blast_data.get("email_blast", {}).get("id")
+            broadcast_data = response.json()
+            # Updated key check for broadcast ID
+            broadcast_id = broadcast_data.get("broadcast", {}).get("id") 
             
-            if email_blast_id:
-                self._log(f"Successfully created and sent email blast with ID: {email_blast_id} using API Key V4")
+            if broadcast_id:
+                self._log(f"Successfully created and sent broadcast with ID: {broadcast_id} using API Key V4")
                 # V4 sends automatically
-                return email_blast_id, None, True 
+                return broadcast_id, None, True 
             else:
-                self._log(f"Failed to create email blast using API Key V4. Response: {blast_data}", "ERROR")
+                self._log(f"Failed to create broadcast using API Key V4. Response: {broadcast_data}", "ERROR")
                 fallback_file = self._save_fallback(subject, content)
                 return None, fallback_file, False
                 
         except requests.exceptions.RequestException as e:
-            self._log(f"Error creating/sending email blast using API Key V4: {e}", "ERROR")
+            self._log(f"Error creating/sending broadcast using API Key V4: {e}", "ERROR")
             if hasattr(e, 'response') and e.response is not None:
                  self._log(f"Response status: {e.response.status_code}", "ERROR")
                  response_text = e.response.text[:500] + ('...' if len(e.response.text) > 500 else '')
@@ -132,7 +134,6 @@ class ConvertKitV4Integration:
         fallback_filename = self.fallback_dir / f"ck_fallback_{timestamp}_{safe_subject}.html"
         try:
             fallback_filename.parent.mkdir(parents=True, exist_ok=True)
-            # Corrected encoding parameter
             with open(fallback_filename, "w", encoding="utf-8") as f:
                 f.write(f"<h1>{subject}</h1>\n{content}")
             self._log(f"Saved fallback content to {fallback_filename}", "WARNING")
@@ -156,15 +157,16 @@ if __name__ == "__main__":
         else:
             print("Failed to retrieve forms.")
             
-        print("\n--- Testing Create and Send Email Blast (using API Key V4) ---")
+        print("\n--- Testing Create and Send Broadcast (using API Key V4) ---")
         test_subject_timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-        test_subject = f"V4 API Test Email (V4 Key Auth) - {test_subject_timestamp}"
-        test_content = "<p>This is a test email sent via the ConvertKit V4 API using the API Key V4 for authentication.</p>"
-        email_blast_id, fallback_file, sent = ck_integration.create_and_send_email_blast(test_subject, test_content)
-        if email_blast_id and sent:
-            print(f"Successfully created and sent email blast: ID {email_blast_id}")
+        test_subject = f"Kit V4 API Test Broadcast (V4 Key Auth) - {test_subject_timestamp}"
+        test_content = "<p>This is a test broadcast sent via the Kit V4 API using the API Key V4 for authentication.</p>"
+        # Updated method name
+        broadcast_id, fallback_file, sent = ck_integration.create_and_send_broadcast(test_subject, test_content)
+        if broadcast_id and sent:
+            print(f"Successfully created and sent broadcast: ID {broadcast_id}")
         else:
-            print(f"Failed to create/send email blast. Fallback saved to: {fallback_file}")
+            print(f"Failed to create/send broadcast. Fallback saved to: {fallback_file}")
     else:
-        print("Failed to initialize ConvertKit V4 Integration (missing API Key V4).")
+        print("Failed to initialize Kit V4 Integration (missing API Key V4).")
 
