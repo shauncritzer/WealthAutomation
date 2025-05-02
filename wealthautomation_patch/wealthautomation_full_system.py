@@ -20,12 +20,14 @@ except ImportError as e:
     exit(1)
 
 # --- Configuration & Setup ---
-load_dotenv("/home/ubuntu/updated_credentials.env")
+# Load environment variables from .env file if it exists (optional, Railway uses its own env vars)
+load_dotenv()
 
 # General Settings
-LOG_DIR = "/home/ubuntu/drop_reports"
+# Use relative paths for Railway compatibility
+LOG_DIR = "drop_reports"
 Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
-MAIN_LOG_FILE = f"{LOG_DIR}/wealthautomation_system.log"
+MAIN_LOG_FILE = Path(LOG_DIR) / "wealthautomation_system.log"
 
 # OpenAI (Assuming GPT-4 or similar is used for content generation)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -42,6 +44,8 @@ def log_message(message, level="INFO"):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"[{timestamp}] [{level}] {message}\n"
     try:
+        # Ensure log directory exists
+        MAIN_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
         with open(MAIN_LOG_FILE, "a") as f:
             f.write(log_entry)
     except Exception as e:
@@ -162,7 +166,7 @@ def run_wealthautomation_cycle(topic="Passive Income Automation"):
         if post_url:
             final_email_content += f"<p>Read the full post here: <a href=\"{post_url}\">{post_url}</a></p>"
         
-        email_blast_id, ck_fallback_file, email_sent = ck_integration.create_and_send_email_blast(email_subject, final_email_content)
+        email_blast_id, ck_fallback_file, email_sent = ck_integration.create_and_send_broadcast(email_subject, final_email_content)
         if email_blast_id and email_sent:
             log_message(f"Successfully sent ConvertKit email blast. Blast ID: {email_blast_id}")
             send_discord_notification(f"ConvertKit Email Sent: {email_subject} (Blast ID: {email_blast_id})", "SUCCESS")
@@ -215,7 +219,7 @@ if __name__ == "__main__":
     essential_vars = ["OPENAI_API_KEY", "WORDPRESS_USER", "WORDPRESS_JWT_SECRET", "CONVERTKIT_API_SECRET"]
     missing_vars = [var for var in essential_vars if not os.getenv(var)]
     if missing_vars:
-        message = f"CRITICAL ERROR: Missing essential environment variables: {', '.join(missing_vars)}. System cannot run."
+        message = f"CRITICAL ERROR: Missing essential environment variables: {", ".join(missing_vars)}. System cannot run."
         log_message(message, "ERROR")
         send_discord_notification(message, "ERROR")
         exit(1)
