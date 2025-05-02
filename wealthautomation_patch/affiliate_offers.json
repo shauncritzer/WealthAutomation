@@ -1,1 +1,102 @@
-{}
+{
+  "offers": [
+    {
+      "id": "ck001",
+      "name": "ConvertKit Pro",
+      "description": "Email marketing platform designed for creators with automation, segmentation, and landing pages.",
+      "url": "https://convertkit.com?ref=passiveaffiliate",
+      "commission": "30% recurring",
+      "categories": ["Email Marketing", "Automation"],
+      "keywords": ["email", "newsletter", "automation", "marketing", "segmentation"],
+      "priority": 5,
+      "ctaTemplates": [
+        "<div class='cta-box'><h3>Grow Your Email List Faster</h3><p>Ready to 10x your email conversions? Try ConvertKit Pro today - limited time 20% discount!</p><a href='{{url}}' class='cta-button'>Start Free Trial</a></div>",
+        "<div class='cta-box'><h3>Email Marketing Made Simple</h3><p>Join 100,000+ creators using ConvertKit to grow their audience and income.</p><a href='{{url}}' class='cta-button'>Try ConvertKit Free</a></div>"
+      ]
+    },
+    {
+      "id": "ja002",
+      "name": "Jasper AI",
+      "description": "AI writing assistant that helps create high-converting content for blogs, emails, and ads.",
+      "url": "https://jasper.ai?fpr=passiveaffiliate",
+      "commission": "30% for first year",
+      "categories": ["AI Tools", "Content Creation"],
+      "keywords": ["ai", "writing", "content", "copywriting", "automation"],
+      "priority": 4,
+      "ctaTemplates": [
+        "<div class='cta-box'><h3>Write Content 10x Faster</h3><p>Create high-converting content with Jasper AI - special 7-day trial available now!</p><a href='{{url}}' class='cta-button'>Try Jasper AI</a></div>",
+        "<div class='cta-box'><h3>AI-Powered Content Creation</h3><p>Stop staring at blank pages. Let Jasper AI write your first draft in seconds.</p><a href='{{url}}' class='cta-button'>Get Started</a></div>"
+      ]
+    },
+    {
+      "id": "sy003",
+      "name": "Systeme.io",
+      "description": "All-in-one marketing platform for building funnels, selling products, and managing affiliates.",
+      "url": "https://systeme.io/?sa=passiveaffiliate",
+      "commission": "40% recurring",
+      "categories": ["Affiliate Platforms", "Marketing"],
+      "keywords": ["funnel", "marketing", "sales", "affiliate", "course"],
+      "priority": 4,
+      "ctaTemplates": [
+        "<div class='cta-box'><h3>Launch Your Online Business</h3><p>Build funnels, sell products, and manage affiliates - all in one platform. Get started free!</p><a href='{{url}}' class='cta-button'>Start Free</a></div>",
+        "<div class='cta-box'><h3>The All-In-One Marketing Platform</h3><p>Replace 6+ tools with one simple system. No technical skills required.</p><a href='{{url}}' class='cta-button'>Try Systeme.io</a></div>"
+      ]
+    },
+    {
+      "id": "pl004",
+      "name": "PLR.me",
+      "description": "Premium private label rights content for coaches, experts, and content creators.",
+      "url": "https://plr.me/?ref=passiveaffiliate",
+      "commission": "50% one-time",
+      "categories": ["PLR/Lead Gen", "Content Creation"],
+      "keywords": ["plr", "content", "lead magnet", "ebook", "course"],
+      "priority": 3,
+      "ctaTemplates": [
+        "<div class='cta-box'><h3>Done-For-You Content</h3><p>Get 10,000+ ready-to-use coaching resources, lead magnets, and courses.</p><a href='{{url}}' class='cta-button'>Browse PLR Content</a></div>",
+        "<div class='cta-box'><h3>Create Content in Minutes, Not Months</h3><p>Access premium PLR content you can brand as your own - no attribution required.</p><a href='{{url}}' class='cta-button'>Get PLR Content</a></div>"
+      ]
+    },
+    {
+      "id": "se005",
+      "name": "SEMrush",
+      "description": "All-in-one SEO tool suite for keyword research, competitor analysis, and content optimization.",
+      "url": "https://semrush.com/partner/passiveaffiliate",
+      "commission": "40% recurring first year",
+      "categories": ["SEO Tools", "Marketing"],
+      "keywords": ["seo", "keyword", "backlink", "competitor", "analytics"],
+      "priority": 4,
+      "ctaTemplates": [
+        "<div class='cta-box'><h3>Dominate Search Rankings</h3><p>Uncover your competitors' SEO secrets and outrank them with SEMrush.</p><a href='{{url}}' class='cta-button'>Try SEMrush Free</a></div>",
+        "<div class='cta-box'><h3>Rank Higher, Grow Faster</h3><p>Get the complete SEO toolkit used by 10M+ marketing professionals worldwide.</p><a href='{{url}}' class='cta-button'>Start Free Trial</a></div>"
+      ]
+    },
+    {
+      "id": "cl006",
+      "name": "ClickFunnels",
+      "description": "Sales funnel builder with landing pages, email automation, and payment processing.",
+      "url": "https://clickfunnels.com/?cf_affiliate_id=passiveaffiliate",
+      "commission": "40% recurring",
+      "categories": ["Affiliate Platforms", "Marketing"],
+      "keywords": ["funnel", "sales", "landing page", "conversion", "webinar"],
+      "priority": 3,
+      "ctaTemplates": [
+        "<div class='cta-box'><h3>Build High-Converting Funnels</h3><p>Create sales funnels that convert visitors into customers in minutes.</p><a href='{{url}}' class='cta-button'>Try ClickFunnels</a></div>",
+        "<div class='cta-box'><h3>Turn Clicks Into Customers</h3><p>The #1 sales funnel builder used by 100,000+ entrepreneurs worldwide.</p><a href='{{url}}' class='cta-button'>Start 14-Day Trial</a></div>"
+      ]
+    },
+    {
+      "id": "mi007",
+      "name": "Midjourney",
+      "description": "AI image generation tool for creating stunning visuals for blogs, social media, and marketing.",
+      "url": "https://midjourney.com?partner=passiveaffiliate",
+      "commission": "25% first year",
+      "categories": ["AI Tools", "Content Creation"],
+      "keywords": ["ai", "image", "design", "graphics", "visual"],
+      "priority": 3,
+      "ctaTemplates": [
+        "<div class='cta-box'><h3>Create Stunning AI Images</h3><p>Generate professional-quality visuals for your content in seconds with Midjourney.</p><a href='{{url}}' class='cta-button'>Try Midjourney</a></div>",
+        "<div class='cta-box'><h3>AI-Generated Visuals That Wow</h3><p>Stop searching for stock photos. Create exactly what you need with simple text prompts.</p><a href='{{url}}' class='cta-button'>Start Creating</a></div>"
+      ]
+    }
+  ]
+}
