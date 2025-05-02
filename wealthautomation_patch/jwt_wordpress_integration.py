@@ -47,16 +47,17 @@ class JWTWordPressIntegration:
         try:
             self.log_file.parent.mkdir(parents=True, exist_ok=True)
             # Corrected encoding parameter
-            with open(self.log_file, "a", encoding='utf-8') as f:
+            with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(log_message)
         except Exception as e:
              print(f"Error writing to log file {self.log_file}: {e}")
              
+        # Also print ERROR/WARNING to console/Railway logs for visibility
         if level == "ERROR" or level == "WARNING":
             print(log_message.strip())
 
     def _get_jwt_token(self):
-        """Obtain JWT token from WordPress."""
+        """Obtain JWT token from WordPress with enhanced logging."""
         if not self.wp_user or not self.jwt_secret:
             self._log("Missing WORDPRESS_USER or WORDPRESS_JWT_SECRET in environment variables", "ERROR")
             return False
@@ -72,7 +73,6 @@ class JWTWordPressIntegration:
              self._log("Missing WORDPRESS_APP_PASSWORD for token generation", "ERROR")
              return False
              
-        # Add Browser User-Agent header
         headers = {
             "Content-Type": "application/json",
             "User-Agent": BROWSER_USER_AGENT 
@@ -82,7 +82,14 @@ class JWTWordPressIntegration:
             "password": wp_app_password.replace(" ", "") # Ensure no spaces
         }
         
-        self._log(f"Attempting to get JWT token from {token_endpoint} for user {self.wp_user} with User-Agent: {BROWSER_USER_AGENT}")
+        # Enhanced logging for the request
+        self._log(f"--- JWT Token Request --- START ---")
+        self._log(f"Request URL: POST {token_endpoint}")
+        self._log(f"Request Headers: {json.dumps(headers, indent=2)}")
+        # Avoid logging password directly, log keys only
+        self._log(f"Request Body Keys: {list(data.keys())}") 
+        self._log(f"--- JWT Token Request --- SENDING ---")
+        
         try:
             response = requests.post(token_endpoint, headers=headers, json=data, timeout=30)
             response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
@@ -91,15 +98,23 @@ class JWTWordPressIntegration:
             if "token" in token_data:
                 self.jwt_token = token_data["token"]
                 self._log("Successfully obtained JWT token")
+                self._log(f"--- JWT Token Request --- SUCCESS ---")
                 return True
             else:
-                self._log(f"Failed to obtain JWT token. Response: {token_data}", "ERROR")
+                self._log(f"Failed to obtain JWT token. Response JSON: {token_data}", "ERROR")
+                self._log(f"--- JWT Token Request --- FAILED (No Token in JSON) ---")
                 return False
         except requests.exceptions.RequestException as e:
             self._log(f"Error obtaining JWT token: {e}", "ERROR")
+            # Enhanced logging for the response in case of error
             if hasattr(e, 'response') and e.response is not None:
-                 self._log(f"Response status: {e.response.status_code}", "ERROR")
-                 self._log(f"Response text: {e.response.text}", "ERROR")
+                 self._log(f"--- JWT Token Response (ERROR) --- START ---")
+                 self._log(f"Response Status Code: {e.response.status_code}", "ERROR")
+                 self._log(f"Response Headers: {json.dumps(dict(e.response.headers), indent=2)}", "ERROR")
+                 self._log(f"Response Body: {e.response.text}", "ERROR")
+                 self._log(f"--- JWT Token Response (ERROR) --- END ---")
+            else:
+                 self._log(f"--- JWT Token Request --- FAILED (No Response Object) ---")
             return False
 
     def _get_auth_header(self):
@@ -176,7 +191,7 @@ class JWTWordPressIntegration:
         try:
             fallback_filename.parent.mkdir(parents=True, exist_ok=True)
             # Corrected encoding parameter
-            with open(fallback_filename, "w", encoding='utf-8') as f:
+            with open(fallback_filename, "w", encoding="utf-8") as f:
                 f.write(f"<h1>{title}</h1>\n{content}")
             self._log(f"Saved fallback content to {fallback_filename}", "WARNING")
             return str(fallback_filename) # Return as string path
@@ -201,8 +216,8 @@ if __name__ == "__main__":
             
         print("\n--- Testing Create Post ---")
         test_title_timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-        test_title = f"JWT Integration Test Post (w/ UA) - {test_title_timestamp}"
-        test_content = "<p>This is a test post created via JWT authentication with a modified User-Agent.</p>"
+        test_title = f"JWT Integration Test Post (Enhanced Log) - {test_title_timestamp}"
+        test_content = "<p>This is a test post created via JWT authentication with enhanced logging for token request.</p>"
         post_id, post_url, fallback_file = wp_integration.create_post(test_title, test_content)
         if post_id:
             print(f"Successfully created post: {post_url}")
