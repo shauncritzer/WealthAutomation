@@ -11,40 +11,67 @@ class JWTWordPressIntegration:
 
     def __init__(self):
         """Initialize with credentials from environment variables."""
-        load_dotenv("/home/ubuntu/updated_credentials.env")
+        # load_dotenv("/home/ubuntu/updated_credentials.env") # Removed: Rely on Railway env vars
+        load_dotenv() # Load .env file in the current directory if it exists (for local testing)
         self.wp_user = os.getenv("WORDPRESS_USER")
-        self.wp_endpoint = os.getenv("WORDPRESS_ENDPOINT", "https://wealthautomationhq.com/wp-json/wp/v2/posts")
+        self.wp_endpoint = os.getenv("WORDPRESS_API_URL", "https://wealthautomationhq.com/wp-json/wp/v2/posts") # Use WORDPRESS_API_URL
         self.jwt_secret = os.getenv("WORDPRESS_JWT_SECRET")
         self.jwt_token = None
-        self.fallback_dir = "/home/ubuntu/drop_reports/wp_fallback"
-        Path(self.fallback_dir).mkdir(parents=True, exist_ok=True)
-        self.log_file = "/home/ubuntu/drop_reports/jwt_wordpress_integration.log"
+        # Use relative paths for Railway compatibility
+        self.log_dir = Path("drop_reports")
+        self.fallback_dir = self.log_dir / "wp_fallback"
+        self.log_file = self.log_dir / "jwt_wordpress_integration.log"
+        # Ensure directories exist
+        self._ensure_dirs_exist()
         self._log("JWTWordPressIntegration initialized")
         self._get_jwt_token()
 
+    def _ensure_dirs_exist(self):
+        """Create log and fallback directories if they don't exist."""
+        try:
+            self.log_dir.mkdir(parents=True, exist_ok=True)
+            self.fallback_dir.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            # Use print here as logging might not be set up yet
+            print(f"Error creating directories {self.log_dir} or {self.fallback_dir}: {e}")
+
     def _log(self, message, level="INFO"):
         """Log messages to a file."""
+        # Check if log directory exists
+        if not self.log_dir.exists():
+            print(f"[{level}] {message} (Logging disabled: log directory {self.log_dir} missing)")
+            return
+            
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_message = f"[{timestamp}] [{level}] {message}\n"
-        with open(self.log_file, "a") as f:
-            f.write(log_message)
-        # Also print errors for immediate visibility
+        try:
+            # Ensure log directory exists just in case
+            self.log_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.log_file, "a") as f:
+                f.write(log_message)
+        except Exception as e:
+             print(f"Error writing to log file {self.log_file}: {e}")
+             
+        # Also print errors/warnings for immediate visibility
         if level == "ERROR" or level == "WARNING":
             print(log_message.strip())
 
     def _get_jwt_token(self):
         """Obtain JWT token from WordPress."""
         if not self.wp_user or not self.jwt_secret:
-            self._log("Missing WordPress user or JWT secret in environment variables", "ERROR")
+            self._log("Missing WORDPRESS_USER or WORDPRESS_JWT_SECRET in environment variables", "ERROR")
             return False
 
-        token_endpoint = "https://wealthautomationhq.com/wp-json/jwt-auth/v1/token"
-        # Note: WP Engine might require specific user/pass for token generation, 
-        # using the Application Password here as a placeholder based on previous attempts.
-        # If this fails, the user might need a standard WP password.
+        # Construct token endpoint from base API URL
+        base_api_url = os.getenv("WORDPRESS_API_URL", "").replace("/wp/v2/posts", "")
+        if not base_api_url:
+             self._log("Missing WORDPRESS_API_URL in environment variables", "ERROR")
+             return False
+        token_endpoint = f"{base_api_url}/jwt-auth/v1/token"
+        
         wp_app_password = os.getenv("WORDPRESS_APP_PASSWORD")
         if not wp_app_password:
-             self._log("Missing WordPress application password for token generation", "ERROR")
+             self._log("Missing WORDPRESS_APP_PASSWORD for token generation", "ERROR")
              return False
              
         headers = {"Content-Type": "application/json"}
@@ -115,7 +142,7 @@ class JWTWordPressIntegration:
             "content": content,
             "status": status
         }
-        self._log(f"Attempting to create post: ", "INFO")
+        self._log(f"Attempting to create post: '{title}'") # Log title
         try:
             response = requests.post(self.wp_endpoint, headers=headers, json=data, timeout=60)
             response.raise_for_status()
@@ -128,7 +155,9 @@ class JWTWordPressIntegration:
             self._log(f"Error creating post: {e}", "ERROR")
             if hasattr(e, 'response') and e.response is not None:
                  self._log(f"Response status: {e.response.status_code}", "ERROR")
-                 self._log(f"Response text: {e.response.text}", "ERROR")
+                 # Log more response text for debugging 403 errors
+                 response_text = e.response.text[:500] + ('...' if len(e.response.text) > 500 else '')
+                 self._log(f"Response text: {response_text}", "ERROR")
             fallback_file = self._save_fallback(title, content)
             return None, None, fallback_file
 
@@ -136,12 +165,15 @@ class JWTWordPressIntegration:
         """Save post content locally if API call fails."""
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_title = "".join(c if c.isalnum() else "_" for c in title)[:50]
-        fallback_filename = f"{self.fallback_dir}/wp_fallback_{timestamp}_{safe_title}.html"
+        # Use Path object for constructing fallback filename
+        fallback_filename = self.fallback_dir / f"wp_fallback_{timestamp}_{safe_title}.html"
         try:
-            with open(fallback_filename, "w") as f:
+            # Ensure directory exists before writing
+            fallback_filename.parent.mkdir(parents=True, exist_ok=True)
+            with open(fallback_filename, "w", encoding='utf-8') as f:
                 f.write(f"<h1>{title}</h1>\n{content}")
             self._log(f"Saved fallback content to {fallback_filename}", "WARNING")
-            return fallback_filename
+            return str(fallback_filename) # Return as string path
         except Exception as e:
             self._log(f"Error saving fallback file: {e}", "ERROR")
             return None
