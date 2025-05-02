@@ -45,7 +45,8 @@ class ConvertKitV4Integration:
         log_message = f"[{timestamp}] [{level}] {message}\n"
         try:
             self.log_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.log_file, "a", encoding=\'utf-8\') as f:
+            # Corrected encoding parameter
+            with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(log_message)
         except Exception as e:
              print(f"Error writing to log file {self.log_file}: {e}")
@@ -81,7 +82,7 @@ class ConvertKitV4Integration:
             return forms
         except requests.exceptions.RequestException as e:
             self._log(f"Error getting forms using API Key V4: {e}", "ERROR")
-            if hasattr(e, \'response\') and e.response is not None:
+            if hasattr(e, 'response') and e.response is not None:
                  self._log(f"Response status: {e.response.status_code}", "ERROR")
                  self._log(f"Response text: {e.response.text}", "ERROR")
             return []
@@ -117,9 +118,9 @@ class ConvertKitV4Integration:
                 
         except requests.exceptions.RequestException as e:
             self._log(f"Error creating/sending email blast using API Key V4: {e}", "ERROR")
-            if hasattr(e, \'response\') and e.response is not None:
+            if hasattr(e, 'response') and e.response is not None:
                  self._log(f"Response status: {e.response.status_code}", "ERROR")
-                 response_text = e.response.text[:500] + (\'...\' if len(e.response.text) > 500 else \'\')
+                 response_text = e.response.text[:500] + ('...' if len(e.response.text) > 500 else '')
                  self._log(f"Response text: {response_text}", "ERROR")
             fallback_file = self._save_fallback(subject, content)
             return None, fallback_file, False
@@ -131,7 +132,8 @@ class ConvertKitV4Integration:
         fallback_filename = self.fallback_dir / f"ck_fallback_{timestamp}_{safe_subject}.html"
         try:
             fallback_filename.parent.mkdir(parents=True, exist_ok=True)
-            with open(fallback_filename, "w", encoding=\'utf-8\') as f:
+            # Corrected encoding parameter
+            with open(fallback_filename, "w", encoding="utf-8") as f:
                 f.write(f"<h1>{subject}</h1>\n{content}")
             self._log(f"Saved fallback content to {fallback_filename}", "WARNING")
             return str(fallback_filename) # Return as string path
