@@ -29,7 +29,7 @@ class JWTWordPressIntegration:
         self._get_jwt_token()
 
     def _ensure_dirs_exist(self):
-        """Create log and fallback directories if they don\t exist."""
+        """Create log and fallback directories if they don't exist."""
         try:
             self.log_dir.mkdir(parents=True, exist_ok=True)
             self.fallback_dir.mkdir(parents=True, exist_ok=True)
@@ -46,7 +46,8 @@ class JWTWordPressIntegration:
         log_message = f"[{timestamp}] [{level}] {message}\n"
         try:
             self.log_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.log_file, "a", encoding=\'utf-8\') as f:
+            # Corrected encoding parameter
+            with open(self.log_file, "a", encoding='utf-8') as f:
                 f.write(log_message)
         except Exception as e:
              print(f"Error writing to log file {self.log_file}: {e}")
@@ -96,7 +97,7 @@ class JWTWordPressIntegration:
                 return False
         except requests.exceptions.RequestException as e:
             self._log(f"Error obtaining JWT token: {e}", "ERROR")
-            if hasattr(e, \'response\') and e.response is not None:
+            if hasattr(e, 'response') and e.response is not None:
                  self._log(f"Response status: {e.response.status_code}", "ERROR")
                  self._log(f"Response text: {e.response.text}", "ERROR")
             return False
@@ -131,7 +132,7 @@ class JWTWordPressIntegration:
             return posts
         except requests.exceptions.RequestException as e:
             self._log(f"Error getting posts: {e}", "ERROR")
-            if hasattr(e, \'response\') and e.response is not None:
+            if hasattr(e, 'response') and e.response is not None:
                  self._log(f"Response status: {e.response.status_code}", "ERROR")
                  self._log(f"Response text: {e.response.text}", "ERROR")
             return []
@@ -148,7 +149,7 @@ class JWTWordPressIntegration:
             "content": content,
             "status": status
         }
-        self._log(f"Attempting to create post: \'{title}\'") # Log title
+        self._log(f"Attempting to create post: '{title}'") # Log title
         try:
             # Pass headers with User-Agent
             response = requests.post(self.wp_endpoint, headers=headers, json=data, timeout=60)
@@ -160,9 +161,9 @@ class JWTWordPressIntegration:
             return post_id, post_url, None
         except requests.exceptions.RequestException as e:
             self._log(f"Error creating post: {e}", "ERROR")
-            if hasattr(e, \'response\') and e.response is not None:
+            if hasattr(e, 'response') and e.response is not None:
                  self._log(f"Response status: {e.response.status_code}", "ERROR")
-                 response_text = e.response.text[:500] + (\'...\' if len(e.response.text) > 500 else \'\')
+                 response_text = e.response.text[:500] + ('...' if len(e.response.text) > 500 else '')
                  self._log(f"Response text: {response_text}", "ERROR")
             fallback_file = self._save_fallback(title, content)
             return None, None, fallback_file
@@ -174,7 +175,8 @@ class JWTWordPressIntegration:
         fallback_filename = self.fallback_dir / f"wp_fallback_{timestamp}_{safe_title}.html"
         try:
             fallback_filename.parent.mkdir(parents=True, exist_ok=True)
-            with open(fallback_filename, "w", encoding=\'utf-8\') as f:
+            # Corrected encoding parameter
+            with open(fallback_filename, "w", encoding='utf-8') as f:
                 f.write(f"<h1>{title}</h1>\n{content}")
             self._log(f"Saved fallback content to {fallback_filename}", "WARNING")
             return str(fallback_filename) # Return as string path
