@@ -46,7 +46,7 @@ def log_message(message, level="INFO"):
     try:
         # Ensure log directory exists
         MAIN_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(MAIN_LOG_FILE, "a") as f:
+        with open(MAIN_LOG_FILE, "a", encoding="utf-8") as f:
             f.write(log_entry)
     except Exception as e:
         print(f"Error writing to main log file {MAIN_LOG_FILE}: {e}")
@@ -136,17 +136,26 @@ def run_wealthautomation_cycle(topic="Passive Income Automation"):
     post_id = None
     post_url = None
     wp_fallback_file = None
+    wp_auth_method = "Unknown" # Initialize auth method used
     try:
-        log_message("Attempting to post to WordPress...")
-        post_id, post_url, wp_fallback_file = wp_integration.create_post(blog_title, blog_content_with_cta)
+        log_message("Attempting to post to WordPress (JWT preferred, Basic Auth fallback)...")
+        # Unpack the four return values, including the auth method used
+        post_id, post_url, wp_fallback_file, wp_auth_method = wp_integration.create_post(blog_title, blog_content_with_cta)
+        
         if post_id:
-            log_message(f"Successfully posted to WordPress. Post ID: {post_id}, URL: {post_url}")
-            send_discord_notification(f"New WordPress Post: {blog_title} - {post_url}", "SUCCESS")
+            log_message(f"Successfully posted to WordPress using {wp_auth_method} Auth. Post ID: {post_id}, URL: {post_url}", "SUCCESS")
+            send_discord_notification(f"New WordPress Post ({wp_auth_method} Auth): {blog_title} - {post_url}", "SUCCESS")
         else:
-            log_message(f"WordPress posting failed. Fallback file: {wp_fallback_file}", "WARNING")
-            send_discord_notification(f"WordPress posting FAILED. Content saved to fallback: {wp_fallback_file}", "WARNING")
+            # Log failure, mentioning the method attempted/failed
+            log_message(f"WordPress posting failed (tried {wp_auth_method} Auth). Fallback file: {wp_fallback_file}", "WARNING")
+            send_discord_notification(f"WordPress posting FAILED (tried {wp_auth_method} Auth). Content saved to fallback: {wp_fallback_file}", "WARNING")
+            # Specific check for Basic Auth failure
+            if wp_auth_method == "Basic":
+                 log_message("Basic Auth failed. Check Application Password validity and permissions in WordPress.", "ERROR")
+                 send_discord_notification("WordPress Basic Auth failed. Check Application Password/permissions.", "ERROR")
+                 
     except Exception as e:
-        log_message(f"Error during WordPress posting attempt: {e}", "ERROR")
+        log_message(f"CRITICAL ERROR during WordPress posting attempt: {e}", "ERROR")
         send_discord_notification(f"CRITICAL ERROR during WordPress posting: {e}", "ERROR")
         # Attempt to save fallback even if the method failed unexpectedly
         if not wp_fallback_file:
@@ -168,7 +177,7 @@ def run_wealthautomation_cycle(topic="Passive Income Automation"):
         
         email_blast_id, ck_fallback_file, email_sent = ck_integration.create_and_send_broadcast(email_subject, final_email_content)
         if email_blast_id and email_sent:
-            log_message(f"Successfully sent ConvertKit email blast. Blast ID: {email_blast_id}")
+            log_message(f"Successfully sent ConvertKit email blast. Blast ID: {email_blast_id}", "SUCCESS")
             send_discord_notification(f"ConvertKit Email Sent: {email_subject} (Blast ID: {email_blast_id})", "SUCCESS")
         else:
             log_message(f"ConvertKit email sending failed. Fallback file: {ck_fallback_file}", "WARNING")
@@ -192,12 +201,13 @@ def run_wealthautomation_cycle(topic="Passive Income Automation"):
                 "post_id": post_id,
                 "post_title": blog_title,
                 "post_url": post_url,
+                "auth_method_used": wp_auth_method, # Include auth method in webhook
                 "timestamp": datetime.datetime.now().isoformat()
             }
             response = requests.post(MAKE_WEBHOOK_URL, json=webhook_payload, timeout=15)
             response.raise_for_status()
             log_message(f"Successfully triggered Make.com webhook. Response: {response.text}")
-            send_discord_notification(f"Triggered Make.com webhook for post ID {post_id}", "INFO")
+            send_discord_notification(f"Triggered Make.com webhook for post ID {post_id} ({wp_auth_method} Auth)", "INFO")
         except requests.exceptions.RequestException as e:
             log_message(f"Error triggering Make.com webhook: {e}", "ERROR")
             send_discord_notification(f"Make.com webhook trigger FAILED: {e}", "ERROR")
@@ -216,7 +226,8 @@ if __name__ == "__main__":
     log_message("========================================")
     
     # --- Check Essential Credentials ---
-    essential_vars = ["OPENAI_API_KEY", "WORDPRESS_USER", "WORDPRESS_JWT_SECRET", "CONVERTKIT_API_SECRET"]
+    # Added WORDPRESS_APP_PASSWORD as essential for the fallback
+    essential_vars = ["OPENAI_API_KEY", "WORDPRESS_USER", "WORDPRESS_JWT_SECRET", "WORDPRESS_APP_PASSWORD", "CONVERTKIT_API_KEY_V4"]
     missing_vars = [var for var in essential_vars if not os.getenv(var)]
     if missing_vars:
         message = f"CRITICAL ERROR: Missing essential environment variables: {", ".join(missing_vars)}. System cannot run."
