@@ -60,7 +60,7 @@ class ConvertKitV4Integration:
             self._log("API Key V4 not available for headers", "ERROR")
             return None
         return {
-            "Authorization": f"Bearer {self.api_key_v4}", 
+            "X-Kit-Api-Key": self.api_key_v4, 
             "Content-Type": "application/json"
         }
 
