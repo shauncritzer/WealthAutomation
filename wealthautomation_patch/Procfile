@@ -1,1 +1,3 @@
-worker: python3 wealthautomation_full_system.py
+web: python run_task.py
+worker: python wealthautomation_full_system.py
+
