@@ -1,5 +1,3 @@
-raise Exception("Manually breaking cron loop for reset")
-
 import os
 import requests
 import json
