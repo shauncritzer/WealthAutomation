@@ -19,6 +19,13 @@ except ImportError as e:
     print("Please ensure jwt_wordpress_integration.py, convertkit_v4_integration.py, and affiliate_offer_library.py are in the same directory.")
     exit(1)
 
+print("🚀 WA script started")
+import os
+print(f"✅ ENV: WP_USER = {os.getenv('WORDPRESS_USER')}")
+print(f"✅ ENV: OPENAI = {os.getenv('OPENAI_API_KEY')[:5]}...")
+print(f"✅ ENV: CK = {os.getenv('CONVERTKIT_API_KEY_V4')[:5]}...")
+print("🛠️ Starting modules...")
+
 # --- Configuration & Setup ---
 # Load environment variables from .env file if it exists (optional, Railway uses its own env vars)
 load_dotenv()
