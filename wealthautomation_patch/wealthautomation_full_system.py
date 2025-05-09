@@ -1,3 +1,5 @@
+raise Exception("Manually breaking cron loop for reset")
+
 import os
 import requests
 import json
@@ -16,7 +18,6 @@ try:
     from affiliate_offer_library import AffiliateOfferLibrary
 except ImportError as e:
     print(f"[ERROR] Failed to import required modules: {e}")
-    print("Please ensure jwt_wordpress_integration.py, convertkit_v4_integration.py, and affiliate_offer_library.py are in the same directory.")
     exit(1)
 
 print("🚀 WA script started")
