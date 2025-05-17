@@ -21,8 +21,11 @@ except ImportError as e:
 print("🚀 WA script started")
 import os
 print(f"✅ ENV: WP_USER = {os.getenv('WORDPRESS_USER')}")
-print(f"✅ ENV: OPENAI = {os.getenv('OPENAI_API_KEY')[:5]}...")
-print(f"✅ ENV: CK = {os.getenv('CONVERTKIT_API_KEY_V4')[:5]}...")
+# Safely print API key previews with None checks
+openai_key = os.getenv('OPENAI_API_KEY')
+print(f"✅ ENV: OPENAI = {openai_key[:5] + '...' if openai_key else 'Not set'}")
+ck_key = os.getenv('CONVERTKIT_API_KEY_V4')
+print(f"✅ ENV: CK = {ck_key[:5] + '...' if ck_key else 'Not set'}")
 print("🛠️ Starting modules...")
 
 # --- Configuration & Setup ---
@@ -236,7 +239,7 @@ if __name__ == "__main__":
     essential_vars = ["OPENAI_API_KEY", "WORDPRESS_USER", "WORDPRESS_JWT_SECRET", "WORDPRESS_APP_PASSWORD", "CONVERTKIT_API_KEY_V4"]
     missing_vars = [var for var in essential_vars if not os.getenv(var)]
     if missing_vars:
-        message = f"CRITICAL ERROR: Missing essential environment variables: {", ".join(missing_vars)}. System cannot run."
+        message = f"CRITICAL ERROR: Missing essential environment variables: {', '.join(missing_vars)}. System cannot run."
         log_message(message, "ERROR")
         send_discord_notification(message, "ERROR")
         exit(1)

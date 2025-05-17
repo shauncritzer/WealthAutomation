@@ -100,7 +100,7 @@ class JWTWordPressIntegration:
                 self._log(f"Error obtaining JWT token: JSONDecodeError - {json_err}", "ERROR")
                 self._log(f"--- JWT Token Response (JSON Decode Error) --- START ---")
                 self._log(f"Response Status Code: {response.status_code}", "ERROR")
-                self._log(f"Response Body (RAW): {response.text[:1000] + ("..." if len(response.text) > 1000 else "")}", "ERROR")
+                self._log(f"Response Body (RAW): {response.text[:1000] + ('...' if len(response.text) > 1000 else '')}", "ERROR")
                 self._log(f"--- JWT Token Response (JSON Decode Error) --- END ---")
                 return False # No specific error type needed now
                 

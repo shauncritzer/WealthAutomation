@@ -1,0 +1,7 @@
+# CTA Log File for WealthAutomationHQ
+# Format: [YYYY-MM-DD HH:MM:SS] Offer Name
+# This file tracks recent CTAs to ensure variety
+
+[2025-05-13 09:02:00] Jasper.ai
+[2025-05-14 09:02:00] Jasper.ai
+[2025-05-15 09:03:00] Jasper.ai
