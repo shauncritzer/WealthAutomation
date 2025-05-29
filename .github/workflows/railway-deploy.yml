@@ -1,0 +1,101 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install -g @railway/cli
+        
+      - name: Deploy to Railway
+        run: railway up --service ${{ secrets.RAILWAY_SERVICE_ID }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          
+      - name: Verify Deployment
+        run: |
+          echo "Deployment completed at $(date)"
+          echo "Verifying service status..."
+          railway status --service ${{ secrets.RAILWAY_SERVICE_ID }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          
+      - name: Notify on Success
+        if: success()
+        run: |
+          curl -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+          -H "Content-Type: application/json" \
+          -d '{
+            "content": "✅ Successfully deployed WealthAutomationHQ to Railway!",
+            "embeds": [{
+              "title": "Deployment Successful",
+              "description": "The latest changes have been deployed to Railway.",
+              "color": 5814783,
+              "fields": [
+                {
+                  "name": "Commit",
+                  "value": "${{ github.sha }}",
+                  "inline": true
+                },
+                {
+                  "name": "Branch",
+                  "value": "${{ github.ref_name }}",
+                  "inline": true
+                },
+                {
+                  "name": "Triggered By",
+                  "value": "${{ github.actor }}",
+                  "inline": true
+                }
+              ],
+              "timestamp": "'"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"'"
+            }]
+          }'
+          
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          curl -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+          -H "Content-Type: application/json" \
+          -d '{
+            "content": "❌ Failed to deploy WealthAutomationHQ to Railway!",
+            "embeds": [{
+              "title": "Deployment Failed",
+              "description": "The deployment to Railway has failed. Please check the GitHub Actions logs for details.",
+              "color": 15158332,
+              "fields": [
+                {
+                  "name": "Commit",
+                  "value": "${{ github.sha }}",
+                  "inline": true
+                },
+                {
+                  "name": "Branch",
+                  "value": "${{ github.ref_name }}",
+                  "inline": true
+                },
+                {
+                  "name": "Triggered By",
+                  "value": "${{ github.actor }}",
+                  "inline": true
+                }
+              ],
+              "timestamp": "'"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"'"
+            }]
+          }'

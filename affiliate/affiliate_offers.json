@@ -1,0 +1,102 @@
+{
+  "offers": [
+    {
+      "id": "offer1",
+      "name": "ConvertKit Email Marketing",
+      "description": "Powerful email marketing platform for creators and small businesses",
+      "url": "https://convertkit.com?ref=wealthautomationhq",
+      "commission": "30%",
+      "categories": ["Email Marketing", "Content Creation"],
+      "keywords": ["email", "newsletter", "marketing", "automation"],
+      "priority": 5,
+      "ctaTemplates": [
+        "<div class=\"affiliate-box\"><h3>🚀 Supercharge Your Email Marketing</h3><p>Ready to build a loyal audience that drives consistent revenue? <strong>ConvertKit</strong> is the email marketing platform I personally use to generate $10K+ monthly with automated sequences.</p><p><a href=\"{{url}}\" class=\"cta-button\">Try ConvertKit Free →</a></p></div>",
+        "<div class=\"affiliate-box\"><h3>💌 Build Your Email Empire</h3><p>Stop leaving money on the table! ConvertKit's powerful automation features helped me grow my list to 10,000+ subscribers who eagerly buy my offers.</p><p><a href=\"{{url}}\" class=\"cta-button\">Start Your Free Trial →</a></p></div>"
+      ]
+    },
+    {
+      "id": "offer2",
+      "name": "Jasper AI",
+      "description": "AI writing assistant for creating marketing copy and content",
+      "url": "https://jasper.ai?fpr=wealthauto",
+      "commission": "25%",
+      "categories": ["AI Tools", "Content Creation"],
+      "keywords": ["ai", "writing", "content", "automation"],
+      "priority": 4,
+      "ctaTemplates": [
+        "<div class=\"affiliate-box\"><h3>🤖 Create Content 10X Faster</h3><p>I've been using <strong>Jasper AI</strong> to generate high-quality blog posts, emails, and social media content in minutes instead of hours. It's been a game-changer for my business.</p><p><a href=\"{{url}}\" class=\"cta-button\">Try Jasper AI Today →</a></p></div>",
+        "<div class=\"affiliate-box\"><h3>📝 AI-Powered Content Creation</h3><p>Struggling to create consistent content? Jasper AI helps me create SEO-optimized blog posts and engaging emails that convert - without writer's block!</p><p><a href=\"{{url}}\" class=\"cta-button\">Get 10,000 Words Free →</a></p></div>"
+      ]
+    },
+    {
+      "id": "offer3",
+      "name": "ClickFunnels",
+      "description": "Sales funnel builder for online businesses",
+      "url": "https://clickfunnels.com?cf_affiliate_id=wealthautomation",
+      "commission": "40%",
+      "categories": ["Sales Funnels", "Marketing"],
+      "keywords": ["funnel", "sales", "landing page", "conversion"],
+      "priority": 4,
+      "ctaTemplates": [
+        "<div class=\"affiliate-box\"><h3>🔥 Convert Visitors Into Customers</h3><p>Want to turn more leads into paying customers? <strong>ClickFunnels</strong> helped me build high-converting sales funnels that increased my conversion rate by 320%.</p><p><a href=\"{{url}}\" class=\"cta-button\">Start Your 14-Day Free Trial →</a></p></div>",
+        "<div class=\"affiliate-box\"><h3>💰 Build Profit-Generating Funnels</h3><p>Stop losing sales! My ClickFunnels sales pages convert at 9.2% - nearly triple the industry average. Get started with the same templates I use.</p><p><a href=\"{{url}}\" class=\"cta-button\">Try ClickFunnels Risk-Free →</a></p></div>"
+      ]
+    },
+    {
+      "id": "offer4",
+      "name": "Systeme.io",
+      "description": "All-in-one marketing platform for online businesses",
+      "url": "https://systeme.io/?sa=wealthautomation",
+      "commission": "50%",
+      "categories": ["Marketing", "Affiliate Platforms"],
+      "keywords": ["marketing", "automation", "sales", "funnel"],
+      "priority": 3,
+      "ctaTemplates": [
+        "<div class=\"affiliate-box\"><h3>⚙️ Automate Your Entire Business</h3><p><strong>Systeme.io</strong> is the all-in-one platform I use to run my entire online business - from email marketing to course delivery to affiliate management. It's saved me $497/month in software costs.</p><p><a href=\"{{url}}\" class=\"cta-button\">Get Started For Free →</a></p></div>",
+        "<div class=\"affiliate-box\"><h3>🔄 Simplify Your Business Systems</h3><p>Running too many tools? Systeme.io combines your email marketing, sales funnels, course platform, and affiliate program into one affordable system.</p><p><a href=\"{{url}}\" class=\"cta-button\">Try Systeme.io Free →</a></p></div>"
+      ]
+    },
+    {
+      "id": "offer5",
+      "name": "Ahrefs",
+      "description": "SEO tools and resources to grow search traffic",
+      "url": "https://ahrefs.com?refer=wealthautomation",
+      "commission": "15%",
+      "categories": ["SEO Tools", "Marketing"],
+      "keywords": ["seo", "search", "traffic", "keywords"],
+      "priority": 3,
+      "ctaTemplates": [
+        "<div class=\"affiliate-box\"><h3>📈 Skyrocket Your Organic Traffic</h3><p>Want more free traffic from Google? <strong>Ahrefs</strong> helped me increase my organic search traffic by 327% in just 6 months by finding low-competition keywords.</p><p><a href=\"{{url}}\" class=\"cta-button\">Try Ahrefs Now →</a></p></div>",
+        "<div class=\"affiliate-box\"><h3>🔍 Unlock Hidden SEO Opportunities</h3><p>Stop guessing what content to create! Ahrefs shows you exactly which keywords your competitors are ranking for that you're missing out on.</p><p><a href=\"{{url}}\" class=\"cta-button\">Start Your 7-Day Trial →</a></p></div>"
+      ]
+    },
+    {
+      "id": "offer6",
+      "name": "PLR.me",
+      "description": "Private label rights content for coaches and entrepreneurs",
+      "url": "https://plr.me/?ref=wealthautomation",
+      "commission": "35%",
+      "categories": ["PLR/Lead Gen", "Content Creation"],
+      "keywords": ["plr", "content", "lead magnet", "ebook"],
+      "priority": 2,
+      "ctaTemplates": [
+        "<div class=\"affiliate-box\"><h3>📚 Create Lead Magnets In Minutes</h3><p>Need high-quality lead magnets fast? <strong>PLR.me</strong> provides done-for-you content that I've used to generate 2,500+ email subscribers without writing from scratch.</p><p><a href=\"{{url}}\" class=\"cta-button\">Get 10 Free Credits →</a></p></div>",
+        "<div class=\"affiliate-box\"><h3>⏱️ Save 100+ Hours On Content Creation</h3><p>Why start from a blank page? PLR.me gives you professionally written content you can brand as your own - from lead magnets to email sequences.</p><p><a href=\"{{url}}\" class=\"cta-button\">Browse Content Library →</a></p></div>"
+      ]
+    },
+    {
+      "id": "offer7",
+      "name": "Make.com",
+      "description": "Visual automation platform to connect apps and automate workflows",
+      "url": "https://make.com/en?pc=wealthautomation",
+      "commission": "20%",
+      "categories": ["Automation", "AI Tools"],
+      "keywords": ["automation", "workflow", "integration", "zapier"],
+      "priority": 4,
+      "ctaTemplates": [
+        "<div class=\"affiliate-box\"><h3>🤖 Automate Your Business Processes</h3><p>I've saved 20+ hours per week using <strong>Make.com</strong> to automate repetitive tasks like content publishing, social media posting, and lead follow-up.</p><p><a href=\"{{url}}\" class=\"cta-button\">Start Automating For Free →</a></p></div>",
+        "<div class=\"affiliate-box\"><h3>⚡ Connect Your Apps Without Code</h3><p>Make.com (formerly Integromat) lets you connect all your favorite apps and create powerful automations without any coding knowledge.</p><p><a href=\"{{url}}\" class=\"cta-button\">Try Make.com Free →</a></p></div>"
+      ]
+    }
+  ]
+}
