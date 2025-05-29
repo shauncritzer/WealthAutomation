@@ -1,2 +1,2 @@
 web: node index.js
-worker: node webhook_handler.js
+worker: node cron_jobs.js
