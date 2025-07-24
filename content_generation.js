@@ -1,3 +1,4 @@
+// Force Railway redeploy - 2025-07-24 3:36 PM
 /**
  * Content Generation Script for WealthAutomationHQ
  *
