@@ -1,225 +1,187 @@
 /**
  * Cron Jobs for WealthAutomation
- * 
+ *
  * This file replaces the Python-based cron jobs with Node.js equivalents
  * using node-cron for scheduling and the existing JS modules for functionality.
  */
 
-const cron = require('node-cron');
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
-const dotenv = require('dotenv');
-const contentGeneration = require('./content_generation');
-const wordpressIntegration = require('./wordpress_integration');
-const convertkitIntegration = require('./convertkit_integration');
+const cron = require("node-cron");
+const fs = require("fs");
+const path = require("path");
+const axios = require("axios");
+const dotenv = require("dotenv");
+const contentGeneration = require("./content_generation");
+// Temporarily commented out to fix deployment issues
+// const wordpressIntegration = require("./wordpress_integration");
+// const convertkitIntegration = require("./convertkit_integration");
 
 // Load environment variables
 dotenv.config();
 
 // Logging function
-function logMessage(message, level = 'INFO') {
+function logMessage(message, level = "INFO") {
   const timestamp = new Date().toISOString();
   const logEntry = `[${timestamp}] [${level}] ${message}`;
   console.log(logEntry);
-  
+
   // Append to log file
-  const logDir = path.join(__dirname, 'logs');
+  const logDir = path.join(__dirname, "logs");
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
   }
-  
-  const logFile = path.join(logDir, `wealthautomation_${new Date().toISOString().split('T')[0]}.log`);
-  fs.appendFileSync(logFile, logEntry + '\n');
+
+  const logFile = path.join(logDir, `wealthautomation_${new Date().toISOString().split("T")[0]}.log`);
+  fs.appendFileSync(logFile, logEntry + "\n");
 }
 
 // Discord notification function (if used)
-async function sendDiscordNotification(message, level = 'INFO') {
+async function sendDiscordNotification(message, isError = false) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-  if (!webhookUrl) return;
-  
+  if (!webhookUrl) {
+    logMessage("Discord webhook URL not configured", "WARN");
+    return;
+  }
+
   try {
-    const color = {
-      'INFO': 3447003,    // Blue
-      'SUCCESS': 5763719, // Green
-      'WARNING': 16776960,// Yellow
-      'ERROR': 15548997   // Red
-    }[level] || 3447003;
-    
-    await axios.post(webhookUrl, {
-      embeds: [{
-        title: `WealthAutomation ${level}`,
-        description: message,
-        color: color,
-        timestamp: new Date().toISOString()
-      }]
-    });
+    const payload = {
+      content: isError ? `🚨 **ERROR**: ${message}` : `✅ **SUCCESS**: ${message}`,
+      username: "WealthAutomation Bot",
+    };
+
+    await axios.post(webhookUrl, payload);
+    logMessage("Discord notification sent successfully");
   } catch (error) {
-    console.error(`Error sending Discord notification: ${error.message}`);
+    logMessage(`Failed to send Discord notification: ${error.message}`, "ERROR");
   }
 }
 
-// Main automation cycle
-async function runWealthAutomationCycle(topic = "Advanced AI Monetization Techniques") {
-  logMessage("========================================");
-  logMessage("WealthAutomation Cycle Starting...");
-  logMessage("========================================");
-  
+// Simplified WordPress posting function
+async function createWordPressPost(title, content) {
   try {
-    // 1. Generate Content
-    logMessage("Generating content for topic: " + topic);
-    const { blogTitle, blogContent, emailSubject, emailContent } = 
-      await contentGeneration.generateContent(topic);
-    
-    // 2. Add CTAs to content
-    logMessage("Adding CTAs to content");
-    const blogContentWithCta = contentGeneration.addCtaToContent(blogContent);
-    const emailContentWithCta = contentGeneration.addCtaToContent(emailContent, 'email');
-    
-    // 3. Post to WordPress
-    let postId = null;
-    let postUrl = null;
-    
-    try {
-      logMessage("Posting to WordPress...");
-      const result = await wordpressIntegration.createPost(blogTitle, blogContentWithCta);
-      postId = result.id;
-      postUrl = result.link;
-      
-      logMessage(`Successfully posted to WordPress. Post ID: ${postId}, URL: ${postUrl}`, "SUCCESS");
-      await sendDiscordNotification(`New WordPress Post: ${blogTitle} (${postUrl})`, "SUCCESS");
-    } catch (error) {
-      logMessage(`Error posting to WordPress: ${error.message}`, "ERROR");
-      await sendDiscordNotification(`WordPress posting FAILED: ${error.message}`, "ERROR");
-      
-      // Save fallback
-      const wpFallbackFile = path.join(__dirname, 'logs', `wp_fallback_${Date.now()}.json`);
-      fs.writeFileSync(wpFallbackFile, JSON.stringify({
-        title: blogTitle,
-        content: blogContentWithCta,
-        timestamp: new Date().toISOString()
-      }, null, 2));
-      
-      logMessage(`Saved WordPress fallback to: ${wpFallbackFile}`, "WARNING");
+    const wpUrl = process.env.WORDPRESS_URL;
+    const wpUsername = process.env.WORDPRESS_USERNAME;
+    const wpPassword = process.env.WORDPRESS_APP_PASSWORD;
+
+    if (!wpUrl || !wpUsername || !wpPassword) {
+      throw new Error("WordPress credentials missing");
     }
-    
-    // 4. Send ConvertKit Email
-    let emailBlastId = null;
-    
-    try {
-      logMessage("Sending ConvertKit email...");
-      
-      // Add blog post URL to email if post was successful
-      let finalEmailContent = emailContentWithCta;
-      if (postUrl) {
-        finalEmailContent += `<p>Read the full post here: <a href="${postUrl}">${postUrl}</a></p>`;
-      }
-      
-      const result = await convertkitIntegration.createAndSendBroadcast(emailSubject, finalEmailContent);
-      emailBlastId = result.id;
-      
-      logMessage(`Successfully sent ConvertKit email. Blast ID: ${emailBlastId}`, "SUCCESS");
-      await sendDiscordNotification(`ConvertKit Email Sent: ${emailSubject} (Blast ID: ${emailBlastId})`, "SUCCESS");
-    } catch (error) {
-      logMessage(`Error sending ConvertKit email: ${error.message}`, "ERROR");
-      await sendDiscordNotification(`ConvertKit email sending FAILED: ${error.message}`, "ERROR");
-      
-      // Save fallback
-      const ckFallbackFile = path.join(__dirname, 'logs', `ck_fallback_${Date.now()}.json`);
-      fs.writeFileSync(ckFallbackFile, JSON.stringify({
-        subject: emailSubject,
-        content: emailContentWithCta,
-        timestamp: new Date().toISOString()
-      }, null, 2));
-      
-      logMessage(`Saved ConvertKit fallback to: ${ckFallbackFile}`, "WARNING");
-    }
-    
-    // 5. Trigger Make.com Webhook (if WordPress post succeeded)
-    if (postId && postUrl && process.env.MAKE_WEBHOOK_URL) {
-      try {
-        logMessage("Triggering Make.com webhook...");
-        
-        const webhookPayload = {
-          event: "new_wordpress_post",
-          post_id: postId,
-          post_title: blogTitle,
-          post_url: postUrl,
-          auth_method_used: "jwt",
-          timestamp: new Date().toISOString()
-        };
-        
-        const response = await axios.post(process.env.MAKE_WEBHOOK_URL, webhookPayload, { timeout: 15000 });
-        logMessage(`Successfully triggered Make.com webhook. Response: ${response.data}`);
-        await sendDiscordNotification(`Triggered Make.com webhook for post ID ${postId}`, "INFO");
-      } catch (error) {
-        logMessage(`Error triggering Make.com webhook: ${error.message}`, "ERROR");
-        await sendDiscordNotification(`Make.com webhook trigger FAILED: ${error.message}`, "ERROR");
-      }
-    } else if (!postId) {
-      logMessage("Skipping Make.com webhook trigger because WordPress post failed.", "INFO");
-    } else if (!process.env.MAKE_WEBHOOK_URL) {
-      logMessage("Make.com webhook URL not configured, skipping trigger.", "INFO");
-    }
-    
-    logMessage("WealthAutomation cycle finished.");
-    await sendDiscordNotification("WealthAutomation cycle finished.", "INFO");
+
+    const postData = {
+      title: title,
+      content: content,
+      status: "publish",
+    };
+
+    const response = await axios.post(`${wpUrl}/wp-json/wp/v2/posts`, postData, {
+      auth: {
+        username: wpUsername,
+        password: wpPassword,
+      },
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return { success: true, postId: response.data.id };
   } catch (error) {
-    logMessage(`UNHANDLED EXCEPTION in main cycle: ${error.message}`, "ERROR");
-    await sendDiscordNotification(`UNHANDLED EXCEPTION in main cycle: ${error.message}`, "ERROR");
+    logMessage(`WordPress posting failed: ${error.message}`, "ERROR");
+    return { success: false, error: error.message };
   }
-  
-  logMessage("========================================");
-  logMessage("WealthAutomation Cycle Complete.");
-  logMessage("========================================");
+}
+
+// Main wealth automation cycle
+async function runWealthAutomationCycle() {
+  logMessage("Starting WealthAutomation cycle");
+
+  try {
+    // Check essential credentials
+    if (!checkEssentialCredentials()) {
+      throw new Error("Essential credentials missing");
+    }
+
+    // Generate content
+    logMessage("Generating content...");
+    const topic = "Advanced AI Monetization Techniques";
+    const content = await contentGeneration.generateContent(topic);
+
+    if (!content || content.includes("Strategy 1: Do the thing")) {
+      throw new Error("Content generation failed - received template content");
+    }
+
+    // Post to WordPress using simplified function
+    logMessage("Posting to WordPress...");
+    const title = `${topic} – Key Strategies (${new Date().toISOString().split("T")[0]} ${new Date().toTimeString().split(" ")[0].substring(0, 5)})`;
+    const postResult = await createWordPressPost(title, content);
+
+    if (!postResult.success) {
+      throw new Error(`WordPress posting failed: ${postResult.error}`);
+    }
+
+    // Send success notification
+    await sendDiscordNotification(`New WordPress Post: ${topic}`);
+    logMessage("WealthAutomation cycle completed successfully");
+
+    return { success: true };
+  } catch (error) {
+    logMessage(`WealthAutomation cycle failed: ${error.message}`, "ERROR");
+    await sendDiscordNotification(`WealthAutomation cycle failed: ${error.message}`, true);
+    return { success: false, error: error.message };
+  }
 }
 
 // Check essential credentials
 function checkEssentialCredentials() {
-  const essentialVars = [
-    "OPENAI_API_KEY", 
-    "WORDPRESS_USER", 
-    "WORDPRESS_JWT_SECRET", 
-    "WORDPRESS_APP_PASSWORD", 
-    "CONVERTKIT_API_KEY_V4"
+  const required = [
+    "OPENAI_API_KEY",
+    "WORDPRESS_URL",
+    "WORDPRESS_USERNAME",
+    "WORDPRESS_APP_PASSWORD",
   ];
-  
-  const missingVars = essentialVars.filter(varName => !process.env[varName]);
-  
-  if (missingVars.length > 0) {
-    const message = `CRITICAL ERROR: Missing essential environment variables: ${missingVars.join(', ')}. System cannot run.`;
-    logMessage(message, "ERROR");
-    sendDiscordNotification(message, "ERROR");
+
+  const missing = required.filter((key) => !process.env[key]);
+
+  if (missing.length > 0) {
+    logMessage(`Missing required environment variables: ${missing.join(", ")}`, "ERROR");
     return false;
   }
-  
-  logMessage("All essential credentials loaded.");
+
   return true;
 }
 
 // Schedule cron jobs
 function scheduleCronJobs() {
-  // Daily content generation at 5:00 AM
-  cron.schedule('0 5 * * *', async () => {
-    if (checkEssentialCredentials()) {
-      await runWealthAutomationCycle();
-    }
+  logMessage("Setting up cron jobs...");
+
+  // Daily content generation at 9 AM, Monday through Friday
+  cron.schedule("0 9 * * 1-5", async () => {
+    logMessage("Triggered daily content generation");
+    await runWealthAutomationCycle();
+  }, {
+    scheduled: true,
+    timezone: "America/New_York",
   });
-  
-  // Log scheduled jobs
-  logMessage("Scheduled daily content generation job for 5:00 AM");
+
+  logMessage("Cron jobs scheduled successfully");
 }
 
-// Export functions for use in other modules
+// Export functions for external use
 module.exports = {
-  scheduleCronJobs,
   runWealthAutomationCycle,
+  scheduleCronJobs,
   logMessage,
-  sendDiscordNotification
+  sendDiscordNotification,
 };
 
-// Run immediately if this file is executed directly
+// Start cron jobs if this file is run directly
 if (require.main === module) {
-  logMessage("Initializing WealthAutomation cron jobs...");
+  logMessage("Starting WealthAutomation cron jobs...");
   scheduleCronJobs();
+
+  // Keep the process alive
+  process.on("SIGINT", () => {
+    logMessage("Shutting down cron jobs...");
+    process.exit(0);
+  });
+
+  logMessage("WealthAutomation cron jobs are running. Press Ctrl+C to stop.");
 }
