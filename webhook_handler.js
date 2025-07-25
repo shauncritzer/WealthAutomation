@@ -9,7 +9,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
 const contentGeneration = require('./content_generation');
-const { // const { configureGitHubWebhooks } = require('./github_webhook_handler');
+// const { configureGitHubWebhooks } = require('./github_webhook_handler');
 
 // Initialize Express app
 const app = express();
