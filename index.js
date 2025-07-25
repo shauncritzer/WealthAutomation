@@ -7,7 +7,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const webhookHandler = require('./webhook_handler');
-const githubWebhookHandler = require('./github_webhook_handler');
+const // const githubWebhookHandler = require('./github_webhook_handler');
 
 // Load environment variables
 dotenv.config();
@@ -35,7 +35,7 @@ app.get('/', (req, res) => {
 
 // GitHub webhook endpoint
 app.post('/github/webhook', (req, res) => {
-  githubWebhookHandler.handleWebhook(req, res);
+  // const githubWebhookHandler.handleWebhook(req, res);
 });
 
 // General webhook endpoint
