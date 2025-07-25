@@ -9,7 +9,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
 const contentGeneration = require('./content_generation');
-const { configureGitHubWebhooks } = require('./github_webhook_handler');
+const { // const { configureGitHubWebhooks } = require('./github_webhook_handler');
 
 // Initialize Express app
 const app = express();
@@ -135,7 +135,7 @@ app.post('/webhooks/convertkit/subscriber', async (req, res) => {
 });
 
 // Configure GitHub webhooks
-configureGitHubWebhooks(app);
+// const { configureGitHubWebhooks(app);
 
 /**
  * Health check endpoint
