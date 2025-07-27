@@ -1,6 +1,6 @@
 /**
  * Enhanced WealthAutomationHQ Backend with Cron Job Management
- * Integrates cron job functionality with web interface and manual triggers
+ * Fixed version for Railway deployment
  */
 
 const express = require('express');
@@ -27,16 +27,21 @@ app.use(bodyParser.json({
 // Serve static files for web interface
 app.use(express.static('public'));
 
-// Import cron job functionality
+// Import cron job functionality with error handling
 let cronJobs;
 try {
   cronJobs = require('./current_cron_jobs');
+  console.log('✅ Successfully loaded cron jobs module');
 } catch (error) {
-  console.log('Cron jobs module not found, creating basic functionality');
+  console.log('⚠️ Cron jobs module not found, creating basic functionality');
   cronJobs = {
-    runWealthAutomationCycle: async () => ({ success: false, error: 'Cron module not available' }),
+    runWealthAutomationCycle: async () => ({ 
+      success: false, 
+      error: 'Cron module not available',
+      message: 'current_cron_jobs.js not found or has errors'
+    }),
     scheduleCronJobs: () => console.log('Cron scheduling not available'),
-    logMessage: (msg) => console.log(msg)
+    logMessage: (msg) => console.log(`[CRON] ${msg}`)
   };
 }
 
@@ -46,7 +51,8 @@ let cronStatus = {
   lastRun: null,
   lastResult: null,
   scheduledJobs: [],
-  logs: []
+  logs: [],
+  systemStatus: 'ready'
 };
 
 // Utility function to add log entry
@@ -70,15 +76,21 @@ function addLog(message, level = 'INFO') {
 
 // Health check endpoint
 app.get('/', (req, res) => {
-  res.status(200).send({
+  res.status(200).json({
     status: 'ok',
     message: 'WealthAutomationHQ backend is running',
-    version: '2.0.0',
+    version: '2.1.0',
     features: ['cron_jobs', 'manual_triggers', 'web_interface'],
     cronStatus: {
       isRunning: cronStatus.isRunning,
       lastRun: cronStatus.lastRun,
-      scheduledJobs: cronStatus.scheduledJobs.length
+      scheduledJobs: cronStatus.scheduledJobs.length,
+      systemStatus: cronStatus.systemStatus
+    },
+    environment: {
+      port: PORT,
+      nodeVersion: process.version,
+      platform: process.platform
     }
   });
 });
@@ -207,6 +219,7 @@ app.get('/dashboard', (req, res) => {
         .log-level-SUCCESS { color: #27ae60; }
         .log-level-ERROR { color: #e74c3c; }
         .log-level-WARN { color: #f39c12; }
+        .system-info { background: #ecf0f1; padding: 10px; border-radius: 4px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -214,6 +227,9 @@ app.get('/dashboard', (req, res) => {
         <div class="header">
             <h1>🚀 WealthAutomationHQ Dashboard</h1>
             <p>Automated Content Generation & Publishing System</p>
+            <div class="system-info">
+                <strong>System Status:</strong> <span id="systemInfo">Loading...</span>
+            </div>
         </div>
 
         <div class="card">
@@ -221,6 +237,7 @@ app.get('/dashboard', (req, res) => {
             <p><strong>Status:</strong> <span id="systemStatus" class="status idle">Loading...</span></p>
             <p><strong>Last Run:</strong> <span id="lastRun">Never</span></p>
             <p><strong>Scheduled Jobs:</strong> <span id="scheduledJobs">0</span></p>
+            <p><strong>System Health:</strong> <span id="systemHealth">Checking...</span></p>
         </div>
 
         <div class="card">
@@ -228,6 +245,7 @@ app.get('/dashboard', (req, res) => {
             <button id="triggerBtn" class="btn" onclick="triggerCronJob()">🎯 Run Content Generation Now</button>
             <button id="scheduleBtn" class="btn" onclick="scheduleJobs()">⏰ Enable Scheduled Jobs</button>
             <button class="btn" onclick="refreshStatus()">🔄 Refresh Status</button>
+            <button class="btn" onclick="testSystem()">🧪 Test System</button>
         </div>
 
         <div class="card">
@@ -252,11 +270,13 @@ app.get('/dashboard', (req, res) => {
                     document.getElementById('systemStatus').className = 'status ' + (isRunning ? 'running' : 'idle');
                     document.getElementById('lastRun').textContent = status.lastRun ? new Date(status.lastRun).toLocaleString() : 'Never';
                     document.getElementById('scheduledJobs').textContent = status.scheduledJobs.length;
+                    document.getElementById('systemHealth').textContent = status.systemStatus || 'Unknown';
                     
                     document.getElementById('triggerBtn').disabled = isRunning;
                 }
             } catch (error) {
                 console.error('Failed to refresh status:', error);
+                document.getElementById('systemHealth').textContent = 'Error: ' + error.message;
             }
         }
 
@@ -277,6 +297,22 @@ app.get('/dashboard', (req, res) => {
                 }
             } catch (error) {
                 console.error('Failed to refresh logs:', error);
+            }
+        }
+
+        async function testSystem() {
+            try {
+                const response = await fetch('/');
+                const data = await response.json();
+                
+                document.getElementById('systemInfo').innerHTML = 
+                    'Version: ' + data.version + 
+                    ' | Port: ' + data.environment.port + 
+                    ' | Node: ' + data.environment.nodeVersion;
+                
+                alert('✅ System test successful!\\n\\nVersion: ' + data.version + '\\nFeatures: ' + data.features.join(', '));
+            } catch (error) {
+                alert('❌ System test failed: ' + error.message);
             }
         }
 
@@ -329,6 +365,7 @@ app.get('/dashboard', (req, res) => {
         // Initial load
         refreshStatus();
         refreshLogs();
+        testSystem();
     </script>
 </body>
 </html>
@@ -349,11 +386,23 @@ app.post('/webhook', (req, res) => {
   res.status(200).json({ status: 'received' });
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
+// Error handling middleware
+app.use((error, req, res, next) => {
+  addLog(`Server error: ${error.message}`, 'ERROR');
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error',
+    message: error.message
+  });
+});
+
+// Start server with proper error handling
+const server = app.listen(PORT, '0.0.0.0', () => {
   addLog(`WealthAutomationHQ backend listening on port ${PORT}`, 'SUCCESS');
   addLog(`Dashboard available at: http://localhost:${PORT}/dashboard`, 'INFO');
   addLog(`API endpoints: /api/cron/status, /api/cron/trigger, /api/cron/schedule`, 'INFO');
+  
+  cronStatus.systemStatus = 'running';
   
   // Initialize cron jobs on startup if enabled
   if (process.env.AUTO_START_CRON === 'true') {
@@ -373,4 +422,23 @@ app.listen(PORT, '0.0.0.0', () => {
     }
   }
 });
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  addLog('SIGTERM received, shutting down gracefully', 'INFO');
+  server.close(() => {
+    addLog('Server closed', 'INFO');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  addLog('SIGINT received, shutting down gracefully', 'INFO');
+  server.close(() => {
+    addLog('Server closed', 'INFO');
+    process.exit(0);
+  });
+});
+
+module.exports = app;
 
