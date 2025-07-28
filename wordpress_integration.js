@@ -1,317 +1,370 @@
 /**
- * WordPress Integration for WealthAutomationHQ
- * 
- * This module handles all WordPress API interactions for blog posts,
- * pages, and media management.
+ * WordPress Integration Module for WealthAutomation
+ * Handles automated posting to WordPress sites
  */
 
 const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
-const FormData = require('form-data');
+const dotenv = require('dotenv');
 
-// Environment variables
-const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL;
-const WORDPRESS_USER = process.env.WORDPRESS_USER;
-const WORDPRESS_APP_PASSWORD = process.env.WORDPRESS_APP_PASSWORD;
+dotenv.config();
 
-/**
- * Create a new blog post
- * @param {Object} postData - Post data
- * @returns {Promise} API response
- */
-async function createPost(postData) {
-  try {
-    console.log(`Creating post: ${postData.title}`);
-    
-    // Prepare post data
-    const payload = {
-      title: postData.title,
-      content: postData.content,
-      excerpt: postData.excerpt || '',
-      status: postData.status || 'publish',
-      categories: postData.categories || [],
-      tags: postData.tags || [],
-      featured_media: postData.featuredMedia || 0
-    };
-    
-    // Call WordPress API
-    const response = await axios.post(
-      `${WORDPRESS_API_URL}/wp/v2/posts`,
-      payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        auth: {
-          username: WORDPRESS_USER,
-          password: WORDPRESS_APP_PASSWORD
+class WordPressIntegration {
+    constructor() {
+        this.wordpressUrl = process.env.WORDPRESS_URL;
+        this.username = process.env.WORDPRESS_USERNAME;
+        this.appPassword = process.env.WORDPRESS_APP_PASSWORD;
+        
+        if (!this.wordpressUrl || !this.username || !this.appPassword) {
+            console.warn('WordPress credentials not fully configured. Posts will be simulated.');
         }
-      }
-    );
-    
-    console.log(`Post created with ID: ${response.data.id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error creating post: ${error.message}`);
-    if (error.response) {
-      console.error(`WordPress API response: ${JSON.stringify(error.response.data)}`);
+        
+        // Create base64 encoded credentials for WordPress REST API
+        this.credentials = Buffer.from(`${this.username}:${this.appPassword}`).toString('base64');
+        
+        // Ensure URL ends with /wp-json/wp/v2
+        if (this.wordpressUrl && !this.wordpressUrl.includes('/wp-json/wp/v2')) {
+            this.apiUrl = `${this.wordpressUrl.replace(/\/$/, '')}/wp-json/wp/v2`;
+        } else {
+            this.apiUrl = this.wordpressUrl;
+        }
     }
-    throw new Error(`Failed to create post: ${error.message}`);
-  }
-}
 
-/**
- * Update an existing blog post
- * @param {number} postId - Post ID
- * @param {Object} postData - Post data
- * @returns {Promise} API response
- */
-async function updatePost(postId, postData) {
-  try {
-    console.log(`Updating post ${postId}`);
-    
-    // Prepare post data
-    const payload = {};
-    if (postData.title) payload.title = postData.title;
-    if (postData.content) payload.content = postData.content;
-    if (postData.excerpt) payload.excerpt = postData.excerpt;
-    if (postData.status) payload.status = postData.status;
-    if (postData.categories) payload.categories = postData.categories;
-    if (postData.tags) payload.tags = postData.tags;
-    if (postData.featuredMedia) payload.featured_media = postData.featuredMedia;
-    
-    // Call WordPress API
-    const response = await axios.post(
-      `${WORDPRESS_API_URL}/wp/v2/posts/${postId}`,
-      payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        auth: {
-          username: WORDPRESS_USER,
-          password: WORDPRESS_APP_PASSWORD
-        }
-      }
-    );
-    
-    console.log(`Post ${postId} updated successfully`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating post: ${error.message}`);
-    throw new Error(`Failed to update post: ${error.message}`);
-  }
-}
+    async createPost(postData) {
+        try {
+            if (!this.wordpressUrl) {
+                return this.simulatePost(postData);
+            }
 
-/**
- * Get a blog post by ID
- * @param {number} postId - Post ID
- * @returns {Promise} API response
- */
-async function getPost(postId) {
-  try {
-    console.log(`Fetching post ${postId}`);
-    
-    const response = await axios.get(
-      `${WORDPRESS_API_URL}/wp/v2/posts/${postId}`,
-      {
-        auth: {
-          username: WORDPRESS_USER,
-          password: WORDPRESS_APP_PASSWORD
-        }
-      }
-    );
-    
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching post: ${error.message}`);
-    throw new Error(`Failed to fetch post: ${error.message}`);
-  }
-}
+            const {
+                title,
+                content,
+                status = 'draft',
+                categories = [],
+                tags = [],
+                featuredImage = null,
+                excerpt = '',
+                slug = ''
+            } = postData;
 
-/**
- * Get recent blog posts
- * @param {Object} options - Query options
- * @returns {Promise} API response
- */
-async function getRecentPosts(options = {}) {
-  try {
-    console.log('Fetching recent posts');
-    
-    const params = {
-      per_page: options.perPage || 10,
-      page: options.page || 1,
-      order: options.order || 'desc',
-      orderby: options.orderby || 'date'
-    };
-    
-    if (options.categories) params.categories = options.categories;
-    if (options.tags) params.tags = options.tags;
-    if (options.search) params.search = options.search;
-    
-    const response = await axios.get(
-      `${WORDPRESS_API_URL}/wp/v2/posts`,
-      {
-        params,
-        auth: {
-          username: WORDPRESS_USER,
-          password: WORDPRESS_APP_PASSWORD
-        }
-      }
-    );
-    
-    console.log(`Fetched ${response.data.length} posts`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching recent posts: ${error.message}`);
-    throw new Error(`Failed to fetch recent posts: ${error.message}`);
-  }
-}
+            // Prepare post data for WordPress API
+            const wpPostData = {
+                title: title,
+                content: content,
+                status: status,
+                excerpt: excerpt,
+                slug: slug || this.generateSlug(title),
+                categories: await this.getCategoryIds(categories),
+                tags: await this.getTagIds(tags),
+                meta: {
+                    _generated_by: 'WealthAutomation AI',
+                    _generation_date: new Date().toISOString()
+                }
+            };
 
-/**
- * Upload media to WordPress
- * @param {string} filePath - Path to file
- * @param {Object} options - Upload options
- * @returns {Promise} API response
- */
-async function uploadMedia(filePath, options = {}) {
-  try {
-    console.log(`Uploading media: ${filePath}`);
-    
-    // Create form data
-    const formData = new FormData();
-    formData.append('file', fs.createReadStream(filePath));
-    
-    if (options.title) formData.append('title', options.title);
-    if (options.caption) formData.append('caption', options.caption);
-    if (options.alt_text) formData.append('alt_text', options.alt_text);
-    
-    // Call WordPress API
-    const response = await axios.post(
-      `${WORDPRESS_API_URL}/wp/v2/media`,
-      formData,
-      {
-        headers: {
-          ...formData.getHeaders(),
-          'Content-Disposition': `attachment; filename="${path.basename(filePath)}"`
-        },
-        auth: {
-          username: WORDPRESS_USER,
-          password: WORDPRESS_APP_PASSWORD
-        }
-      }
-    );
-    
-    console.log(`Media uploaded with ID: ${response.data.id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error uploading media: ${error.message}`);
-    throw new Error(`Failed to upload media: ${error.message}`);
-  }
-}
+            // Add featured image if provided
+            if (featuredImage) {
+                wpPostData.featured_media = await this.uploadFeaturedImage(featuredImage);
+            }
 
-/**
- * Get categories
- * @returns {Promise} API response
- */
-async function getCategories() {
-  try {
-    console.log('Fetching categories');
-    
-    const response = await axios.get(
-      `${WORDPRESS_API_URL}/wp/v2/categories`,
-      {
-        params: {
-          per_page: 100
-        },
-        auth: {
-          username: WORDPRESS_USER,
-          password: WORDPRESS_APP_PASSWORD
-        }
-      }
-    );
-    
-    console.log(`Fetched ${response.data.length} categories`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching categories: ${error.message}`);
-    throw new Error(`Failed to fetch categories: ${error.message}`);
-  }
-}
+            const response = await axios.post(`${this.apiUrl}/posts`, wpPostData, {
+                headers: {
+                    'Authorization': `Basic ${this.credentials}`,
+                    'Content-Type': 'application/json'
+                }
+            });
 
-/**
- * Create a category
- * @param {string} name - Category name
- * @param {Object} options - Category options
- * @returns {Promise} API response
- */
-async function createCategory(name, options = {}) {
-  try {
-    console.log(`Creating category: ${name}`);
-    
-    const payload = {
-      name: name,
-      description: options.description || ''
-    };
-    
-    if (options.parent) payload.parent = options.parent;
-    
-    const response = await axios.post(
-      `${WORDPRESS_API_URL}/wp/v2/categories`,
-      payload,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        auth: {
-          username: WORDPRESS_USER,
-          password: WORDPRESS_APP_PASSWORD
-        }
-      }
-    );
-    
-    console.log(`Category created with ID: ${response.data.id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error creating category: ${error.message}`);
-    throw new Error(`Failed to create category: ${error.message}`);
-  }
-}
+            return {
+                success: true,
+                postId: response.data.id,
+                postUrl: response.data.link,
+                status: response.data.status,
+                title: response.data.title.rendered,
+                publishedAt: response.data.date,
+                message: 'Post created successfully'
+            };
 
-/**
- * Check WordPress connection
- * @returns {Promise<boolean>} Connection status
- */
-async function checkConnection() {
-  try {
-    console.log('Checking WordPress connection');
-    
-    const response = await axios.get(
-      `${WORDPRESS_API_URL}/wp/v2/users/me`,
-      {
-        auth: {
-          username: WORDPRESS_USER,
-          password: WORDPRESS_APP_PASSWORD
+        } catch (error) {
+            console.error('WordPress post creation failed:', error.message);
+            
+            // If WordPress fails, simulate the post for logging
+            const simulatedResult = this.simulatePost(postData);
+            
+            return {
+                success: false,
+                error: error.message,
+                simulated: simulatedResult,
+                message: 'WordPress posting failed, but content was generated successfully'
+            };
         }
-      }
-    );
-    
-    console.log(`WordPress connection successful. User: ${response.data.name}`);
-    return true;
-  } catch (error) {
-    console.error(`WordPress connection failed: ${error.message}`);
-    return false;
-  }
+    }
+
+    async updatePost(postId, updateData) {
+        try {
+            if (!this.wordpressUrl) {
+                return {
+                    success: false,
+                    error: 'WordPress not configured',
+                    message: 'Post update simulated'
+                };
+            }
+
+            const response = await axios.post(`${this.apiUrl}/posts/${postId}`, updateData, {
+                headers: {
+                    'Authorization': `Basic ${this.credentials}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            return {
+                success: true,
+                postId: response.data.id,
+                postUrl: response.data.link,
+                status: response.data.status,
+                message: 'Post updated successfully'
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message,
+                message: 'Post update failed'
+            };
+        }
+    }
+
+    async getCategoryIds(categoryNames) {
+        if (!categoryNames || categoryNames.length === 0) {
+            return [];
+        }
+
+        try {
+            const categoryIds = [];
+            
+            for (const categoryName of categoryNames) {
+                // First, try to find existing category
+                const searchResponse = await axios.get(`${this.apiUrl}/categories`, {
+                    params: { search: categoryName },
+                    headers: {
+                        'Authorization': `Basic ${this.credentials}`
+                    }
+                });
+
+                if (searchResponse.data.length > 0) {
+                    categoryIds.push(searchResponse.data[0].id);
+                } else {
+                    // Create new category if it doesn't exist
+                    const createResponse = await axios.post(`${this.apiUrl}/categories`, {
+                        name: categoryName,
+                        slug: this.generateSlug(categoryName)
+                    }, {
+                        headers: {
+                            'Authorization': `Basic ${this.credentials}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    categoryIds.push(createResponse.data.id);
+                }
+            }
+
+            return categoryIds;
+
+        } catch (error) {
+            console.error('Category processing failed:', error.message);
+            return [];
+        }
+    }
+
+    async getTagIds(tagNames) {
+        if (!tagNames || tagNames.length === 0) {
+            return [];
+        }
+
+        try {
+            const tagIds = [];
+            
+            for (const tagName of tagNames) {
+                // First, try to find existing tag
+                const searchResponse = await axios.get(`${this.apiUrl}/tags`, {
+                    params: { search: tagName },
+                    headers: {
+                        'Authorization': `Basic ${this.credentials}`
+                    }
+                });
+
+                if (searchResponse.data.length > 0) {
+                    tagIds.push(searchResponse.data[0].id);
+                } else {
+                    // Create new tag if it doesn't exist
+                    const createResponse = await axios.post(`${this.apiUrl}/tags`, {
+                        name: tagName,
+                        slug: this.generateSlug(tagName)
+                    }, {
+                        headers: {
+                            'Authorization': `Basic ${this.credentials}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    tagIds.push(createResponse.data.id);
+                }
+            }
+
+            return tagIds;
+
+        } catch (error) {
+            console.error('Tag processing failed:', error.message);
+            return [];
+        }
+    }
+
+    async uploadFeaturedImage(imageUrl) {
+        try {
+            // Download image
+            const imageResponse = await axios.get(imageUrl, {
+                responseType: 'arraybuffer'
+            });
+
+            // Upload to WordPress media library
+            const uploadResponse = await axios.post(`${this.apiUrl}/media`, imageResponse.data, {
+                headers: {
+                    'Authorization': `Basic ${this.credentials}`,
+                    'Content-Type': 'image/jpeg',
+                    'Content-Disposition': 'attachment; filename="featured-image.jpg"'
+                }
+            });
+
+            return uploadResponse.data.id;
+
+        } catch (error) {
+            console.error('Featured image upload failed:', error.message);
+            return null;
+        }
+    }
+
+    generateSlug(title) {
+        return title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim('-');
+    }
+
+    simulatePost(postData) {
+        const simulatedId = Math.floor(Math.random() * 10000) + 1000;
+        const simulatedSlug = this.generateSlug(postData.title);
+        
+        return {
+            success: true,
+            simulated: true,
+            postId: simulatedId,
+            postUrl: `https://example.com/${simulatedSlug}`,
+            status: postData.status || 'draft',
+            title: postData.title,
+            publishedAt: new Date().toISOString(),
+            message: 'Post simulated successfully (WordPress not configured)'
+        };
+    }
+
+    async getRecentPosts(limit = 10) {
+        try {
+            if (!this.wordpressUrl) {
+                return {
+                    success: false,
+                    error: 'WordPress not configured'
+                };
+            }
+
+            const response = await axios.get(`${this.apiUrl}/posts`, {
+                params: {
+                    per_page: limit,
+                    orderby: 'date',
+                    order: 'desc'
+                },
+                headers: {
+                    'Authorization': `Basic ${this.credentials}`
+                }
+            });
+
+            return {
+                success: true,
+                posts: response.data.map(post => ({
+                    id: post.id,
+                    title: post.title.rendered,
+                    url: post.link,
+                    status: post.status,
+                    publishedAt: post.date,
+                    excerpt: post.excerpt.rendered
+                }))
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    async testConnection() {
+        try {
+            if (!this.wordpressUrl) {
+                return {
+                    success: false,
+                    error: 'WordPress credentials not configured',
+                    message: 'Please set WORDPRESS_URL, WORDPRESS_USERNAME, and WORDPRESS_APP_PASSWORD environment variables'
+                };
+            }
+
+            const response = await axios.get(`${this.apiUrl}/posts`, {
+                params: { per_page: 1 },
+                headers: {
+                    'Authorization': `Basic ${this.credentials}`
+                }
+            });
+
+            return {
+                success: true,
+                message: 'WordPress connection successful',
+                siteInfo: {
+                    url: this.wordpressUrl,
+                    apiUrl: this.apiUrl,
+                    postsFound: response.data.length
+                }
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message,
+                message: 'WordPress connection failed'
+            };
+        }
+    }
 }
 
 module.exports = {
-  createPost,
-  updatePost,
-  getPost,
-  getRecentPosts,
-  uploadMedia,
-  getCategories,
-  createCategory,
-  checkConnection
+    createPost: async (postData) => {
+        const wp = new WordPressIntegration();
+        return await wp.createPost(postData);
+    },
+    
+    updatePost: async (postId, updateData) => {
+        const wp = new WordPressIntegration();
+        return await wp.updatePost(postId, updateData);
+    },
+    
+    getRecentPosts: async (limit = 10) => {
+        const wp = new WordPressIntegration();
+        return await wp.getRecentPosts(limit);
+    },
+    
+    testConnection: async () => {
+        const wp = new WordPressIntegration();
+        return await wp.testConnection();
+    },
+    
+    WordPressIntegration
 };
+
