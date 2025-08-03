@@ -1,0 +1,169 @@
+{
+  "offers": [
+    {
+      "id": "clickfunnels_2024",
+      "name": "ClickFunnels 2.0",
+      "category": "marketing_tools",
+      "description": "Complete sales funnel builder and marketing automation platform",
+      "affiliate_link": "https://www.clickfunnels.com/?cf_affiliate_id=YOUR_ID",
+      "commission_rate": "40%",
+      "price_range": "$97-$297/month",
+      "target_audience": "entrepreneurs, marketers, business owners",
+      "keywords": ["sales funnels", "marketing automation", "lead generation", "conversion optimization"],
+      "cta_templates": [
+        "Ready to build high-converting sales funnels? Get ClickFunnels 2.0 and start converting visitors into customers today!",
+        "Stop losing potential customers! ClickFunnels 2.0 makes it easy to create professional sales funnels that convert.",
+        "Transform your business with ClickFunnels 2.0 - the complete funnel building solution trusted by thousands of entrepreneurs."
+      ],
+      "active": true,
+      "priority": 1
+    },
+    {
+      "id": "gohighlevel_2024",
+      "name": "GoHighLevel",
+      "category": "crm_automation",
+      "description": "All-in-one CRM, marketing automation, and business management platform",
+      "affiliate_link": "https://www.gohighlevel.com/?fp_ref=YOUR_ID",
+      "commission_rate": "40%",
+      "price_range": "$97-$497/month",
+      "target_audience": "agencies, consultants, service providers",
+      "keywords": ["CRM", "marketing automation", "client management", "white label"],
+      "cta_templates": [
+        "Streamline your entire business with GoHighLevel - the all-in-one platform that replaces 10+ tools!",
+        "Ready to scale your agency? GoHighLevel gives you everything you need to manage clients and automate marketing.",
+        "Stop juggling multiple tools! GoHighLevel combines CRM, marketing automation, and more in one powerful platform."
+      ],
+      "active": true,
+      "priority": 2
+    },
+    {
+      "id": "convertkit_2024",
+      "name": "ConvertKit",
+      "category": "email_marketing",
+      "description": "Email marketing platform designed for creators and entrepreneurs",
+      "affiliate_link": "https://convertkit.com/?lmref=YOUR_ID",
+      "commission_rate": "30%",
+      "price_range": "$29-$79/month",
+      "target_audience": "content creators, bloggers, course creators",
+      "keywords": ["email marketing", "newsletter", "automation", "creator tools"],
+      "cta_templates": [
+        "Build a loyal audience with ConvertKit - the email marketing platform built for creators!",
+        "Ready to grow your email list? ConvertKit makes it easy to connect with your audience and drive sales.",
+        "Transform subscribers into customers with ConvertKit's powerful email marketing automation."
+      ],
+      "active": true,
+      "priority": 3
+    },
+    {
+      "id": "kajabi_2024",
+      "name": "Kajabi",
+      "category": "course_platform",
+      "description": "All-in-one platform for creating and selling online courses and digital products",
+      "affiliate_link": "https://kajabi.com/?r=YOUR_ID",
+      "commission_rate": "30%",
+      "price_range": "$149-$399/month",
+      "target_audience": "course creators, coaches, educators",
+      "keywords": ["online courses", "digital products", "coaching", "membership sites"],
+      "cta_templates": [
+        "Ready to monetize your knowledge? Kajabi makes it easy to create and sell online courses that generate passive income!",
+        "Turn your expertise into profit with Kajabi - the complete platform for course creators and coaches.",
+        "Build your online education empire with Kajabi's all-in-one course creation and marketing platform."
+      ],
+      "active": true,
+      "priority": 4
+    },
+    {
+      "id": "systeme_io_2024",
+      "name": "Systeme.io",
+      "category": "all_in_one",
+      "description": "Complete online business platform with funnels, email marketing, and course hosting",
+      "affiliate_link": "https://systeme.io/?sa=YOUR_ID",
+      "commission_rate": "60%",
+      "price_range": "$27-$97/month",
+      "target_audience": "small business owners, solopreneurs, startups",
+      "keywords": ["online business", "sales funnels", "email marketing", "affordable"],
+      "cta_templates": [
+        "Start your online business for less! Systeme.io gives you everything you need at a fraction of the cost.",
+        "Why pay more? Systeme.io combines funnels, email marketing, and more in one affordable platform.",
+        "Build your online empire without breaking the bank - Systeme.io is the budget-friendly alternative to expensive tools!"
+      ],
+      "active": true,
+      "priority": 5
+    },
+    {
+      "id": "builderall_2024",
+      "name": "Builderall",
+      "category": "website_builder",
+      "description": "Complete digital marketing platform with website builder and automation tools",
+      "affiliate_link": "https://builderall.com/?r=YOUR_ID",
+      "commission_rate": "30%",
+      "price_range": "$19.90-$69.90/month",
+      "target_audience": "small businesses, marketers, agencies",
+      "keywords": ["website builder", "digital marketing", "automation", "affordable"],
+      "cta_templates": [
+        "Build professional websites and marketing campaigns with Builderall - over 25 tools in one platform!",
+        "Stop paying for multiple tools! Builderall gives you everything you need to succeed online.",
+        "Create stunning websites and powerful marketing campaigns with Builderall's all-in-one platform."
+      ],
+      "active": true,
+      "priority": 6
+    },
+    {
+      "id": "aweber_2024",
+      "name": "AWeber",
+      "category": "email_marketing",
+      "description": "Trusted email marketing platform with automation and analytics",
+      "affiliate_link": "https://www.aweber.com/?id=YOUR_ID",
+      "commission_rate": "30%",
+      "price_range": "$19-$149/month",
+      "target_audience": "small businesses, entrepreneurs, marketers",
+      "keywords": ["email marketing", "automation", "newsletters", "small business"],
+      "cta_templates": [
+        "Grow your business with AWeber - the trusted email marketing platform used by over 1 million entrepreneurs!",
+        "Ready to connect with your customers? AWeber makes email marketing simple and effective.",
+        "Build lasting relationships with your audience using AWeber's powerful email marketing tools."
+      ],
+      "active": true,
+      "priority": 7
+    },
+    {
+      "id": "getresponse_2024",
+      "name": "GetResponse",
+      "category": "marketing_automation",
+      "description": "Complete marketing automation platform with email, landing pages, and webinars",
+      "affiliate_link": "https://www.getresponse.com/?a=YOUR_ID",
+      "commission_rate": "33%",
+      "price_range": "$15-$99/month",
+      "target_audience": "marketers, small businesses, agencies",
+      "keywords": ["marketing automation", "email marketing", "webinars", "landing pages"],
+      "cta_templates": [
+        "Automate your marketing success with GetResponse - email, landing pages, and webinars all in one!",
+        "Ready to scale your marketing? GetResponse gives you the tools to automate and optimize your campaigns.",
+        "Grow your business faster with GetResponse's complete marketing automation platform."
+      ],
+      "active": true,
+      "priority": 8
+    }
+  ],
+  "rotation_settings": {
+    "method": "weighted_random",
+    "frequency": "per_post",
+    "max_offers_per_post": 2,
+    "exclude_similar_categories": true
+  },
+  "content_integration": {
+    "placement_options": ["end_of_post", "mid_content", "sidebar"],
+    "default_placement": "end_of_post",
+    "include_disclosure": true,
+    "disclosure_text": "This post contains affiliate links. I may earn a commission if you purchase through these links at no additional cost to you."
+  },
+  "tracking": {
+    "utm_source": "wealthautomation",
+    "utm_medium": "blog",
+    "utm_campaign": "affiliate_content",
+    "conversion_tracking": true
+  },
+  "last_updated": "2025-07-30T19:30:00Z",
+  "version": "1.0.0"
+}
+
