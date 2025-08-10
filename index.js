@@ -1,7 +1,7 @@
 /**
  * WealthAutomationHQ - Complete Backend System
  * Automated Content Generation & Publishing Platform
- * Version: 3.0.0
+ * Version: 3.1.0 - Test Mode
  */
 
 const express = require('express');
@@ -18,8 +18,9 @@ dotenv.config();
 let contentGeneration, wordpressIntegration, convertkitIntegration;
 
 try {
-    contentGeneration = require('./content_generation');
-    console.log('✅ Content generation module loaded successfully');
+    // Use test module for immediate functionality
+    contentGeneration = require('./content_generation_test');
+    console.log('✅ Content generation TEST module loaded successfully');
 } catch (error) {
     console.log('⚠️ Content generation module not available:', error.message);
 }
@@ -73,7 +74,7 @@ app.get('/', (req, res) => {
     res.status(200).json({
         status: 'ok',
         message: 'WealthAutomationHQ backend is running',
-        version: '3.0.0',
+        version: '3.1.0-test',
         timestamp: new Date().toISOString(),
         modules: {
             contentGeneration: !!contentGeneration,
@@ -115,13 +116,18 @@ app.get('/dashboard', (req, res) => {
         .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; }
         .badge-success { background: #c6f6d5; color: #22543d; }
         .badge-warning { background: #faf089; color: #744210; }
+        .badge-test { background: #bee3f8; color: #2a4365; }
+        .test-mode { background: #bee3f8; color: #2a4365; padding: 0.5rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🚀 WealthAutomationHQ Dashboard</h1>
         <p>Automated Content Generation & Publishing System</p>
-        <p><strong>System Status:</strong> Version: 3.0.0 | Port: ${PORT} | Node: ${process.version}</p>
+        <p><strong>System Status:</strong> Version: 3.1.0-test | Port: ${PORT} | Node: ${process.version}</p>
+        <div class="test-mode">
+            <strong>🧪 TEST MODE ACTIVE</strong> - Using fallback content generation for immediate testing
+        </div>
     </div>
     
     <div class="container">
@@ -129,7 +135,7 @@ app.get('/dashboard', (req, res) => {
             <h2>System Status</h2>
             <div class="status-grid">
                 <div class="status-item">
-                    <div class="status-value">Idle</div>
+                    <div class="status-value">Ready</div>
                     <div>Status</div>
                 </div>
                 <div class="status-item">
@@ -142,7 +148,7 @@ app.get('/dashboard', (req, res) => {
                 </div>
                 <div class="status-item">
                     <div class="status-value">
-                        <span class="badge badge-success">running</span>
+                        <span class="badge badge-test">test mode</span>
                     </div>
                     <div>System Health</div>
                 </div>
@@ -164,19 +170,34 @@ app.get('/dashboard', (req, res) => {
             <div class="logs" id="logs">
                 <div class="log-info">[${new Date().toLocaleString()}] [INFO] Dashboard loaded successfully</div>
                 <div class="log-success">[${new Date().toLocaleString()}] [SUCCESS] WealthAutomationHQ backend listening on port ${PORT}</div>
+                <div class="log-info">[${new Date().toLocaleString()}] [INFO] Test mode active - ready for content generation</div>
             </div>
         </div>
     </div>
 
     <script>
         function runContentGeneration() {
-            fetch('/api/cron/trigger', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Content generation triggered:', data);
-                    refreshStatus();
-                })
-                .catch(error => console.error('Error:', error));
+            console.log('Triggering content generation...');
+            
+            fetch('/api/cron/trigger', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Content generation result:', data);
+                alert('Content generation triggered! Check the logs for results.');
+                setTimeout(refreshStatus, 2000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error triggering content generation. Check console for details.');
+            });
         }
 
         function enableScheduledJobs() {
@@ -184,6 +205,7 @@ app.get('/dashboard', (req, res) => {
                 .then(response => response.json())
                 .then(data => {
                     console.log('Scheduled jobs enabled:', data);
+                    alert('Scheduled jobs enabled! Daily content generation will run Monday-Friday at 9 AM EST.');
                     refreshStatus();
                 })
                 .catch(error => console.error('Error:', error));
@@ -217,6 +239,7 @@ app.get('/api/status', (req, res) => {
     res.json({
         status: 'running',
         timestamp: new Date().toISOString(),
+        testMode: true,
         modules: {
             contentGeneration: !!contentGeneration,
             wordpressIntegration: !!wordpressIntegration,
@@ -239,18 +262,26 @@ app.post('/api/cron/trigger', async (req, res) => {
 
         // Generate content
         const topic = 'Building wealth through automation and smart systems';
+        logMessage('INFO', `Generating content for topic: ${topic}`);
+        
         const content = await contentGeneration.generateContent(topic);
         
         if (content.success) {
-            logMessage('SUCCESS', `Content generated successfully: ${content.topic}`);
+            logMessage('SUCCESS', `Content generated successfully: ${content.topic} (${content.wordCount} words)`);
+            
+            // Save content to file for review
+            const contentFile = path.join(logsDir, `generated-content-${Date.now()}.txt`);
+            fs.writeFileSync(contentFile, `Topic: ${content.topic}\nGenerated: ${content.generatedAt}\nType: ${content.type}\nWord Count: ${content.wordCount}\n\n${content.content}`);
+            logMessage('INFO', `Content saved to: ${contentFile}`);
             
             // Try to post to WordPress if available
             if (wordpressIntegration) {
                 try {
+                    logMessage('INFO', 'Attempting WordPress post creation...');
                     const post = await wordpressIntegration.createPost({
                         title: `Daily Insight: ${content.topic}`,
                         content: content.content,
-                        status: 'publish'
+                        status: 'draft' // Use draft for testing
                     });
                     logMessage('SUCCESS', `WordPress post created: ${post.id}`);
                 } catch (wpError) {
@@ -261,6 +292,7 @@ app.post('/api/cron/trigger', async (req, res) => {
             // Try to send email if available
             if (convertkitIntegration) {
                 try {
+                    logMessage('INFO', 'Attempting ConvertKit email broadcast...');
                     const email = await convertkitIntegration.sendBroadcast({
                         subject: `Daily Insight: ${content.topic}`,
                         content: content.content
@@ -273,7 +305,13 @@ app.post('/api/cron/trigger', async (req, res) => {
             
             res.json({
                 success: true,
-                content: content,
+                content: {
+                    topic: content.topic,
+                    type: content.type,
+                    wordCount: content.wordCount,
+                    generatedAt: content.generatedAt,
+                    testMode: content.testMode || false
+                },
                 timestamp: new Date().toISOString()
             });
         } else {
@@ -329,6 +367,7 @@ app.post('/api/cron/schedule', (req, res) => {
 app.get('/api/test', (req, res) => {
     const testResults = {
         timestamp: new Date().toISOString(),
+        testMode: true,
         modules: {
             contentGeneration: !!contentGeneration,
             wordpressIntegration: !!wordpressIntegration,
@@ -378,6 +417,7 @@ app.listen(PORT, '0.0.0.0', () => {
     logMessage('SUCCESS', `WealthAutomationHQ backend listening on port ${PORT}`);
     logMessage('INFO', `Dashboard available at: http://localhost:${PORT}/dashboard`);
     logMessage('INFO', 'API endpoints: /api/cron/status, /api/cron/trigger, /api/cron/schedule');
+    logMessage('INFO', 'Test mode active - using fallback content generation');
 });
 
 // Graceful shutdown
