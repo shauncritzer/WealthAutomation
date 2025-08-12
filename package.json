@@ -1,7 +1,7 @@
 {
-  "name": "wealthautomation-backend",
-  "version": "3.0.0",
-  "description": "WealthAutomationHQ - Automated Content Generation & Publishing Platform",
+  "name": "wealthautomationhq-complete-empire",
+  "version": "5.0.0",
+  "description": "Complete AI Automation Empire with WordPress, ConvertKit, HeyGen, ElevenLabs, Qliker integration",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -9,28 +9,56 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
+    "ai",
     "automation",
-    "content-generation",
+    "content",
     "wordpress",
     "convertkit",
-    "ai",
+    "heygen",
+    "elevenlabs",
+    "qliker",
+    "affiliate",
     "marketing"
   ],
-  "author": "Shaun Critzer",
+  "author": "Shaun Critzer <shaun@wealthautomationhq.com>",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "body-parser": "^1.20.2",
+    "node-cron": "^3.0.3",
+    "axios": "^1.6.0",
+    "form-data": "^4.0.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
     "dotenv": "^16.3.1",
-    "node-cron": "^3.0.2",
-    "axios": "^1.5.0",
-    "form-data": "^4.0.0"
+    "multer": "^1.4.5-lts.1",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "uuid": "^9.0.1",
+    "moment": "^2.29.4",
+    "lodash": "^4.17.21",
+    "cheerio": "^1.0.0-rc.12",
+    "sharp": "^0.32.6",
+    "ffmpeg-static": "^5.2.0",
+    "node-fetch": "^3.3.2",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
   },
   "engines": {
-    "node": ">=16.0.0"
-  }
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shauncritzer/WealthAutomation.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shauncritzer/WealthAutomation/issues"
+  },
+  "homepage": "https://wealthautomationhq.com"
 }
 
